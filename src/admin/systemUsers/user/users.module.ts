@@ -3,8 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdminUsersController } from './users.controller';
 import { AdminUsersService } from './users.service';
 import { AdminsEntity } from './entities/adminUsers.entity';
-import { SubjectEntity } from './entities/adminSubjects.Entity';
-import { ActionEntity } from './entities/adminActions.Entity';
+import { SubjectEntity } from './entities/adminSubjects.entity';
+import { ActionEntity } from './entities/adminActions.entity';
 import { AdminTokenModule } from '../token/token.module';
 import { AbilityControlModule } from 'src/admin/abilityControl/abilityControl.module';
 

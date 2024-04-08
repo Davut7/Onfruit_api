@@ -33,8 +33,8 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { SubjectEntity } from './entities/adminSubjects.Entity';
-import { ActionEntity } from './entities/adminActions.Entity';
+import { SubjectEntity } from './entities/adminSubjects.entity';
+import { ActionEntity } from './entities/adminActions.entity';
 
 @ApiTags('admin-users')
 @ApiBearerAuth()

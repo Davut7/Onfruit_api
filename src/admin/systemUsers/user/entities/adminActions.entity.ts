@@ -1,7 +1,7 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
 import { BaseEntity } from 'src/helpers/baseEntity.entity';
 import { Column, Entity, ManyToOne } from 'typeorm';
-import { SubjectEntity } from './adminSubjects.Entity';
+import { SubjectEntity } from './adminSubjects.entity';
 import { ActionEnum } from 'src/helpers/constants';
 import { ApiProperty } from '@nestjs/swagger';
 

@@ -3,7 +3,7 @@ import { BaseEntity } from 'src/helpers/baseEntity.entity';
 import { SubjectEnum } from 'src/helpers/constants';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { AdminsEntity } from './adminUsers.entity';
-import { ActionEntity } from './adminActions.Entity';
+import { ActionEntity } from './adminActions.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'admin_subjects' })

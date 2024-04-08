@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { AdminRoleEnum } from 'src/helpers/constants';
 import { AdminTokenEntity } from '../../token/entities/adminToken.entity';
-import { SubjectEntity } from './adminSubjects.Entity';
+import { SubjectEntity } from './adminSubjects.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity({ name: 'admin_users' })
