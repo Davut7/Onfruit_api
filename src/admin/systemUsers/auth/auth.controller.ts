@@ -19,6 +19,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { AdminsEntity } from '../user/entities/adminUsers.entity';
 
@@ -27,6 +28,7 @@ import { AdminsEntity } from '../user/entities/adminUsers.entity';
 export class AdminAuthController {
   constructor(private readonly adminUserAuthService: AdminAuthService) {}
 
+  @ApiOperation({ summary: 'Register a new system user' })
   @ApiConflictResponse({
     type: ConflictException,
     description: 'User with name already exists!',
@@ -49,6 +51,7 @@ export class AdminAuthController {
     return await this.adminUserAuthService.registration(dto);
   }
 
+  @ApiOperation({ summary: 'Login as a system user' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'System user with this data not found`',
@@ -80,6 +83,7 @@ export class AdminAuthController {
     });
   }
 
+  @ApiOperation({ summary: 'Refresh user tokens' })
   @ApiUnauthorizedResponse({
     type: UnauthorizedException,
     description: 'System user not authorized',
@@ -115,6 +119,7 @@ export class AdminAuthController {
     });
   }
 
+  @ApiOperation({ summary: 'Logout user' })
   @ApiUnauthorizedResponse({
     type: UnauthorizedException,
     description: 'System user not authorized',

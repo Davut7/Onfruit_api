@@ -60,17 +60,14 @@ export class OrderEntity extends BaseEntity {
   @Column({ type: 'uuid' })
   userId: string;
 
-  @ApiProperty({ type: () => ClientAddressEntity })
   @ManyToOne(() => ClientAddressEntity, (address) => address.order, {
     onDelete: 'NO ACTION',
   })
   deliveredAddress: ClientAddressEntity;
 
-  @ApiProperty({ type: () => [OrderProductsEntity] })
   @OneToMany(() => OrderProductsEntity, (product) => product.order)
   orderProducts: OrderProductsEntity[];
 
-  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(() => UserEntity, (user) => user.orders, {
     onDelete: 'CASCADE',
   })

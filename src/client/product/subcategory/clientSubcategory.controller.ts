@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Query,
@@ -14,9 +15,8 @@ import { CurrentUser } from 'src/helpers/common/decorators/currentUser.decorator
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiQuery,
+  ApiOkResponse,
+  ApiNotFoundResponse,
 } from '@nestjs/swagger';
 
 @ApiTags('Client Subcategories')
@@ -27,15 +27,16 @@ export class ClientSubcategoryController {
   ) {}
 
   @ApiOperation({ summary: 'Get one subcategory' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Subcategory returned successfully',
   })
-  @ApiResponse({ status: 404, description: 'Subcategory not found' })
-  @ApiParam({ name: 'id', description: 'Subcategory ID', type: String })
-  @Get(':id')
+  @ApiNotFoundResponse({
+    type: NotFoundException,
+    description: 'Subcategory not found',
+  })
+  @Get(':subcategoryId')
   getOneSubcategory(
-    @Param('id', ParseUUIDPipe) subcategoryId: string,
+    @Param('subcategoryId', ParseUUIDPipe) subcategoryId: string,
     @Query() query: GetClientSubcategoryDto,
   ) {
     const subcategory = this.clientSubcategoryService.getOneSubcategory(
@@ -47,16 +48,17 @@ export class ClientSubcategoryController {
   }
 
   @ApiOperation({ summary: 'Get one subcategory with authentication' })
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     description: 'Subcategory returned successfully',
   })
-  @ApiResponse({ status: 404, description: 'Subcategory not found' })
+  @ApiNotFoundResponse({
+    type: NotFoundException,
+    description: 'Subcategory not found',
+  })
   @UseGuards(ClientAuthGuard)
-  @ApiParam({ name: 'id', description: 'Subcategory ID', type: String })
-  @Get('authenticated/:id')
+  @Get('authenticated/:subcategoryId')
   getOneSubcategoryWithAuth(
-    @Param('id', ParseUUIDPipe) subcategoryId: string,
+    @Param('subcategoryId', ParseUUIDPipe) subcategoryId: string,
     @Query() query: GetClientSubcategoryDto,
     @CurrentUser() currentUser: UserEntity,
   ) {

@@ -13,7 +13,6 @@ export class UserTokenEntity extends BaseEntity {
   @Column({ type: 'uuid', nullable: false, unique: true })
   userId: string;
 
-  @ApiProperty({ type: () => UserEntity })
   @OneToOne(() => UserEntity, (user) => user.token, {
     onDelete: 'CASCADE',
   })

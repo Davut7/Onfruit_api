@@ -11,9 +11,11 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
-  ApiParam,
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiNotFoundResponse,
+  ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { UserOrderService } from './userOrder.service';
 import { UserEntity } from '../user/users/entities/user.entity';
@@ -29,11 +31,10 @@ export class UserOrderController {
 
   @UseGuards(ClientAuthGuard)
   @ApiOperation({ summary: 'Order basket products' })
-  @ApiParam({
-    name: 'addressId',
-    description: 'ID of the address to deliver the order',
-    type: String,
+  @ApiCreatedResponse({
+    description: 'Products ordered successfully',
   })
+  @ApiBadRequestResponse({ description: 'Invalid request body' })
   @Post(':addressId')
   async orderBasketProducts(
     @CurrentUser() currentUser: UserEntity,
@@ -44,6 +45,9 @@ export class UserOrderController {
 
   @UseGuards(ClientAuthGuard)
   @ApiOperation({ summary: 'Get orders' })
+  @ApiOkResponse({
+    description: 'Orders retrieved successfully',
+  })
   @Get()
   async getOrders(
     @CurrentUser() currentUser: UserEntity,
@@ -54,11 +58,10 @@ export class UserOrderController {
 
   @UseGuards(ClientAuthGuard)
   @ApiOperation({ summary: 'Get one order by ID' })
-  @ApiParam({
-    name: 'orderId',
-    description: 'ID of the order to retrieve',
-    type: String,
+  @ApiOkResponse({
+    description: 'Order returned successfully',
   })
+  @ApiNotFoundResponse({ description: 'Order not found' })
   @Get(':orderId')
   async getOneOrder(
     @Param('orderId', ParseUUIDPipe) orderId: string,
@@ -69,11 +72,10 @@ export class UserOrderController {
 
   @UseGuards(ClientAuthGuard)
   @ApiOperation({ summary: 'Delete an order by ID' })
-  @ApiParam({
-    name: 'orderId',
-    description: 'ID of the order to delete',
-    type: String,
+  @ApiOkResponse({
+    description: 'Order deleted successfully',
   })
+  @ApiNotFoundResponse({ description: 'Order not found' })
   @Delete(':orderId')
   async deleteOrder(
     @Param('orderId', ParseUUIDPipe) orderId: string,

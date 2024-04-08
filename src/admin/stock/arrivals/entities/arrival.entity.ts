@@ -113,12 +113,6 @@ export class ArrivalEntity extends BaseEntity {
   @Column({ type: 'uuid', nullable: false })
   productId: string;
 
-  @ApiProperty({
-    title: 'Product',
-    name: 'product',
-    description: 'The associated product',
-    type: () => ProductEntity,
-  })
   @ManyToOne(() => ProductEntity, (product) => product.arrivals, {
     onDelete: 'NO ACTION',
     onUpdate: 'NO ACTION',

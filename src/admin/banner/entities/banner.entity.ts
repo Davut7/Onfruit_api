@@ -30,7 +30,6 @@ export class BannerEntity extends BaseEntity {
   @Column({ type: 'enum', enum: BannerTypeEnum, nullable: false })
   bannerType: BannerTypeEnum;
 
-  @ApiProperty({ type: () => MediaEntity })
   @OneToOne(() => MediaEntity, (media) => media.banner)
   media: MediaEntity;
 }

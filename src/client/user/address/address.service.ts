@@ -31,13 +31,12 @@ export class AddressService {
     return address;
   }
 
-  async deleteAddress(addressId: string, userId: string) {
-    const address = await this.addressRepository.delete({
-      id: addressId,
-      userId: userId,
+  async deleteAddress(addressId: string) {
+    const address = await this.getOneAddress(addressId);
+    await this.addressRepository.delete({
+      id: address.id,
     });
     return {
-      address,
       message: 'Address deleted successfully!',
     };
   }
@@ -50,11 +49,7 @@ export class AddressService {
   }
 
   async updateAddress(dto: UpdateAddressDto, addressId: string) {
-    const address = await this.addressRepository.findOne({
-      where: { id: addressId },
-    });
-
-    if (!address) throw new NotFoundException('Address not found');
+    const address = await this.getOneAddress(addressId);
 
     Object.assign(address, dto);
 
@@ -74,5 +69,14 @@ export class AddressService {
       })
       .getMany();
     return readyAddresses;
+  }
+
+  async getOneAddress(addressId: string) {
+    const address = await this.addressRepository.findOne({
+      where: { id: addressId },
+    });
+
+    if (!address) throw new NotFoundException('Address not found');
+    return address;
   }
 }

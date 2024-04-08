@@ -143,53 +143,42 @@ export class ProductEntity extends BaseEntity {
   })
   currentSaleQuantity: number;
 
-  @ApiProperty({ type: () => SubcategoryEntity })
   @ManyToOne(() => SubcategoryEntity, (subcategory) => subcategory.products)
   subcategory: SubcategoryEntity;
 
-  @ApiProperty({ type: () => MediaEntity })
   @OneToMany(() => MediaEntity, (media) => media.product)
   medias: MediaEntity[];
 
-  @ApiProperty({ type: () => ProductAttributesEntity })
   @OneToMany(
     () => ProductAttributesEntity,
     (productAttributes) => productAttributes.product,
   )
   productAttributes: ProductAttributesEntity[];
 
-  @ApiProperty({ type: () => ArrivalEntity })
   @OneToMany(() => ArrivalEntity, (arrivals) => arrivals.product)
   arrivals: ArrivalEntity[];
 
-  @ApiProperty({ type: () => RealizationEntity })
   @OneToMany(() => RealizationEntity, (realizations) => realizations.product)
   realizations: RealizationEntity[];
 
-  @ApiProperty({ type: () => RealizationPriceEntity })
   @OneToMany(() => RealizationPriceEntity, (prices) => prices.product)
   prices: RealizationPriceEntity[];
 
-  @ApiProperty({ type: () => BasketEntity })
   @OneToMany(() => BasketEntity, (op) => op.basketProduct)
   basketProduct: BasketEntity;
 
-  @ApiProperty({ type: () => LikedProductsEntity })
   @OneToMany(() => LikedProductsEntity, (likedProduct) => likedProduct.product)
   likedProducts: LikedProductsEntity[];
 
-  @ApiProperty({ type: () => FavoriteListProductsEntity })
   @OneToMany(
     () => FavoriteListProductsEntity,
     (favoriteProduct) => favoriteProduct.product,
   )
   favoriteListProduct: FavoriteListProductsEntity[];
 
-  @ApiProperty({ type: () => OrderProductsEntity })
   @OneToMany(() => OrderProductsEntity, (orderProduct) => orderProduct.product)
   orderProduct: OrderProductsEntity[];
 
-  @ApiProperty({ type: () => DiscountEntity })
   @OneToMany(() => DiscountEntity, (discount) => discount.product)
   discount: DiscountEntity;
 }

@@ -31,12 +31,6 @@ export class PenaltyEntity extends BaseEntity {
   @Column()
   monthlyRecordId: string;
 
-  @ApiProperty({
-    title: 'Monthly Record',
-    name: 'monthlyRecord',
-    description: 'The associated monthly record',
-    type: () => MonthlyRecordEntity,
-  })
   @ManyToOne(() => MonthlyRecordEntity, (employee) => employee.penalty, {
     onDelete: 'SET NULL',
   })

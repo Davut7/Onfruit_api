@@ -15,9 +15,9 @@ import {
   ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { OrderEntity } from 'src/client/order/entities/order.entity';
 
@@ -27,6 +27,7 @@ import { OrderEntity } from 'src/client/order/entities/order.entity';
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
+  @ApiOperation({ summary: 'Get orders' })
   @ApiOkResponse({
     description: 'Orders returned successfully',
     schema: {
@@ -43,6 +44,7 @@ export class OrderController {
     return this.orderService.getOrders(query);
   }
 
+  @ApiOperation({ summary: 'Get one order by ID' })
   @ApiOkResponse({
     type: OrderEntity,
     description: 'Order returned successfully',
@@ -51,12 +53,12 @@ export class OrderController {
     type: NotFoundException,
     description: 'Order not found',
   })
-  @ApiParam({ name: 'id', description: 'Order id' })
-  @Get(':id')
-  async getOneOrder(@Param('id') orderId: string) {
+  @Get(':orderId')
+  async getOneOrder(@Param('orderId') orderId: string) {
     return this.orderService.getOneOrder(orderId);
   }
 
+  @ApiOperation({ summary: 'Delete an order by ID' })
   @ApiOkResponse({
     description: 'Order deleted successfully',
     schema: {
@@ -66,33 +68,35 @@ export class OrderController {
       },
     },
   })
-  @ApiParam({ name: 'id', description: 'Order id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Order not found',
   })
-  @Delete(':id')
-  async deleteOrder(@Param('id') orderId: string) {
+  @Delete(':orderId')
+  async deleteOrder(@Param('orderId') orderId: string) {
     return this.orderService.deleteOrder(orderId);
   }
 
+  @ApiOperation({ summary: 'Update an order by ID' })
   @ApiOkResponse({
-    description: 'Order deleted successfully',
+    description: 'Order updated successfully',
     schema: {
       type: 'object',
       properties: {
-        message: { type: 'string', example: 'Order deleted successfully' },
+        message: { type: 'string', example: 'Order updated successfully' },
         order: { $ref: getSchemaPath(OrderEntity) },
       },
     },
   })
-  @ApiParam({ name: 'id', description: 'Order id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Order not found',
   })
-  @Patch(':id')
-  async updateOrder(@Param('id') orderId: string, @Body() dto: UpdateOrderDto) {
+  @Patch(':orderId')
+  async updateOrder(
+    @Param('orderId') orderId: string,
+    @Body() dto: UpdateOrderDto,
+  ) {
     return this.orderService.updateOrder(orderId, dto);
   }
 }

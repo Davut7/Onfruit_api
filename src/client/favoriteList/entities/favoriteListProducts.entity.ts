@@ -5,7 +5,6 @@ import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { FavoriteListEntity } from './favoriteLists.entity';
 import { ColumnNumericTransformer } from 'src/helpers/transform/columnNumberTransfer';
 import { ApiProperty } from '@nestjs/swagger';
-import Api from 'twilio/lib/rest/Api';
 
 @Entity({ name: 'favorite_list_products' })
 export class FavoriteListProductsEntity extends BaseEntity {
@@ -78,14 +77,12 @@ export class FavoriteListProductsEntity extends BaseEntity {
   @Column({ type: 'uuid', unique: true })
   favoriteListId: string;
 
-  @ApiProperty({ type: () => ProductEntity })
   @ManyToOne(() => ProductEntity, (product) => product.favoriteListProduct, {
     cascade: true,
   })
   @JoinColumn({ name: 'productId' })
   product: ProductEntity;
 
-  @ApiProperty({ type: () => FavoriteListEntity })
   @ManyToOne(
     () => FavoriteListEntity,
     (favoriteList) => favoriteList.favoriteProducts,

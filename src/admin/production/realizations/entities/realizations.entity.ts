@@ -99,12 +99,6 @@ export class RealizationEntity extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   isActive: boolean;
 
-  @ApiProperty({
-    title: 'Product',
-    name: 'product',
-    description: 'The associated product',
-    type: () => ProductEntity,
-  })
   @ManyToOne(() => ProductEntity, (product) => product.realizations)
   @JoinColumn()
   product: ProductEntity;

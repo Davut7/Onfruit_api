@@ -28,14 +28,14 @@ export class SubjectEntity extends BaseEntity {
   @Column({ type: 'uuid', nullable: false })
   adminId: string;
 
-  @ApiProperty({ type: () => AdminsEntity })
+
   @ManyToOne(() => AdminsEntity, (admin) => admin.subjects, {
     onDelete: 'CASCADE',
   })
   @JoinColumn()
   admin: AdminsEntity;
 
-  @ApiProperty({ type: () => [ActionEntity] })
+
   @OneToMany(() => ActionEntity, (action) => action.subject)
   action: ActionEntity[];
 }

@@ -17,9 +17,9 @@ import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { DiscountEntity } from './entities/discount.entity';
 
@@ -29,6 +29,7 @@ import { DiscountEntity } from './entities/discount.entity';
 export class DiscountController {
   constructor(private discountService: DiscountService) {}
 
+  @ApiOperation({ summary: 'Create a new discount for a product' })
   @ApiCreatedResponse({
     schema: {
       type: 'object',
@@ -45,19 +46,19 @@ export class DiscountController {
     },
     description: 'Discount for product created successfully',
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Product id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Product not found',
   })
-  @Post(':id')
+  @Post(':productId')
   async createDiscount(
     @Body() dto: CreateDiscountDto,
-    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
   ) {
     return this.discountService.createDiscount(productId, dto);
   }
 
+  @ApiOperation({ summary: 'Get all available discounts' })
   @ApiOkResponse({
     schema: {
       type: 'object',
@@ -83,6 +84,7 @@ export class DiscountController {
     return this.discountService.getDiscounts();
   }
 
+  @ApiOperation({ summary: 'Get a specific discount by ID' })
   @ApiOkResponse({
     schema: {
       type: 'object',
@@ -92,16 +94,16 @@ export class DiscountController {
     },
     description: 'Discount returned successfully',
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Discount id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Discount not found',
   })
-  @Get(':id')
-  async getOneDiscount(@Param('id', ParseUUIDPipe) discountId: string) {
+  @Get(':discountId')
+  async getOneDiscount(@Param('discountId', ParseUUIDPipe) discountId: string) {
     return this.discountService.getOneDiscount(discountId);
   }
 
+  @ApiOperation({ summary: 'Update a discount' })
   @ApiOkResponse({
     schema: {
       type: 'object',
@@ -112,19 +114,19 @@ export class DiscountController {
     },
     description: 'Discount returned successfully',
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Discount id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Discount not found',
   })
-  @Patch(':id')
+  @Patch(':discountId')
   async updateDiscount(
-    @Param('id', ParseUUIDPipe) discountId: string,
+    @Param('discountId', ParseUUIDPipe) discountId: string,
     @Body() dto: UpdateDiscountDto,
   ) {
     return this.discountService.updateDiscount(discountId, dto);
   }
 
+  @ApiOperation({ summary: 'Delete a discount' })
   @ApiOkResponse({
     schema: {
       type: 'object',
@@ -134,13 +136,12 @@ export class DiscountController {
     },
     description: 'Discount deleted successfully',
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Discount id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Discount not found',
   })
-  @Delete(':id')
-  async deleteDiscount(@Param('id', ParseUUIDPipe) discountId: string) {
+  @Delete(':discountId')
+  async deleteDiscount(@Param('discountId', ParseUUIDPipe) discountId: string) {
     return this.discountService.deleteDiscount(discountId);
   }
 }

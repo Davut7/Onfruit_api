@@ -31,12 +31,6 @@ export class PrePaymentEntity extends BaseEntity {
   @Column({ type: 'uuid' })
   monthlyRecordId: string;
 
-  @ApiProperty({
-    title: 'Monthly Record',
-    name: 'monthlyRecord',
-    description: 'The associated monthly record',
-    type: () => MonthlyRecordEntity,
-  })
   @ManyToOne(() => MonthlyRecordEntity, (employee) => employee.prepayment, {
     onDelete: 'SET NULL',
   })

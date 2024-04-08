@@ -20,8 +20,8 @@ import {
   ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { ProductAttributesEntity } from './entities/productAttributes.entity';
 
@@ -33,7 +33,7 @@ export class ProductAttributesController {
     private readonly productAttributesService: ProductAttributesService,
   ) {}
 
-  @ApiParam({ type: 'string', name: 'id', description: 'Product id' })
+  @ApiOperation({ summary: 'Create product attribute for a product' })
   @ApiOkResponse({
     type: ProductAttributesEntity,
     description: 'Product attribute created successfully',
@@ -42,14 +42,14 @@ export class ProductAttributesController {
     type: NotFoundException,
     description: 'Product not found',
   })
-  @Post(':id')
+  @Post(':productId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
     subject: SubjectEnum.Products,
   })
   async createAttribute(
-    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
     @Body() dto: CreateProductAttrDto,
   ) {
     return this.productAttributesService.createProductAttributes(
@@ -58,7 +58,7 @@ export class ProductAttributesController {
     );
   }
 
-  @ApiParam({ type: 'string', name: 'id', description: 'Product attribute id' })
+  @ApiOperation({ summary: 'Update product attribute' })
   @ApiOkResponse({
     type: ProductAttributesEntity,
     description: 'Product attribute updated successfully',
@@ -67,14 +67,14 @@ export class ProductAttributesController {
     type: NotFoundException,
     description: 'Product attribute by id not found',
   })
-  @Patch(':id')
+  @Patch(':productAttributeId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Update,
     subject: SubjectEnum.Products,
   })
   async updateAttribute(
-    @Param('id', ParseUUIDPipe) productAttributeId: string,
+    @Param('productAttributeId', ParseUUIDPipe) productAttributeId: string,
     @Body() dto: UpdateProductAttrDto,
   ) {
     return this.productAttributesService.updateAttribute(
@@ -83,7 +83,7 @@ export class ProductAttributesController {
     );
   }
 
-  @ApiParam({ type: 'string', name: 'id', description: 'Product attribute id' })
+  @ApiOperation({ summary: 'Get product attribute by ID' })
   @ApiOkResponse({
     type: ProductAttributesEntity,
     description: 'Product attribute returned by id successfully',
@@ -92,17 +92,19 @@ export class ProductAttributesController {
     type: NotFoundException,
     description: 'Product not found',
   })
-  @Get(':id')
+  @Get(':productAttributeId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
   })
-  async getAttribute(@Param('id', ParseUUIDPipe) id: string) {
-    return this.productAttributesService.getOneAttribute(id);
+  async getAttribute(
+    @Param('productAttributeId', ParseUUIDPipe) productAttributeId: string,
+  ) {
+    return this.productAttributesService.getOneAttribute(productAttributeId);
   }
 
-  @ApiParam({ type: 'string', name: 'id', description: 'Product id' })
+  @ApiOperation({ summary: 'Delete product attribute' })
   @ApiOkResponse({
     type: ProductAttributesEntity,
     description: 'Product attribute deleted successfully',
@@ -111,13 +113,15 @@ export class ProductAttributesController {
     type: NotFoundException,
     description: 'Product not found',
   })
-  @Delete(':id')
+  @Delete(':productAttributeId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Delete,
     subject: SubjectEnum.Products,
   })
-  async deleteAttribute(@Param('id', ParseUUIDPipe) id: string) {
-    return this.productAttributesService.deleteAttribute(id);
+  async deleteAttribute(
+    @Param('productAttributeId', ParseUUIDPipe) productAttributeId: string,
+  ) {
+    return this.productAttributesService.deleteAttribute(productAttributeId);
   }
 }

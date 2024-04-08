@@ -20,12 +20,10 @@ export class LikedProductsEntity extends BaseEntity {
   @Column({ type: 'uuid', nullable: false })
   productId: string;
 
-  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(() => UserEntity, (user) => user.likedProducts)
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
 
-  @ApiProperty({ type: () => ProductEntity })
   @ManyToOne(() => ProductEntity, (product) => product.likedProducts)
   @JoinColumn({ name: 'productId' })
   product: ProductEntity;

@@ -37,12 +37,7 @@ export class DiscountEntity extends BaseEntity {
   @Column({ type: 'uuid' })
   productId: string;
 
-  @ApiProperty({
-    title: 'Product',
-    name: 'product',
-    description: 'The product to which the discount applies',
-    type: () => ProductEntity,
-  })
+
   @OneToMany(() => ProductEntity, (product) => product.discount)
   product: ProductEntity;
 }

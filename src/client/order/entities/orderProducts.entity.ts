@@ -60,13 +60,13 @@ export class OrderProductsEntity extends BaseEntity {
   @Column({ type: 'uuid' })
   orderId: string;
 
-  @ApiProperty({ type: () => OrderEntity })
+
   @ManyToOne(() => OrderEntity, (order) => order.orderProducts, {
     onDelete: 'CASCADE',
   })
   order: OrderEntity;
 
-  @ApiProperty({ type: () => ProductEntity })
+
   @ManyToOne(() => ProductEntity, (product) => product.orderProduct, {
     onDelete: 'CASCADE',
   })

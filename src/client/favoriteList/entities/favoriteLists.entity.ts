@@ -25,11 +25,9 @@ export class FavoriteListEntity extends BaseEntity {
   @Column({ type: 'uuid', unique: true })
   userId: string;
 
-  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(() => UserEntity, (user) => user.favoriteList)
   user: UserEntity;
 
-  @ApiProperty({ type: () => [FavoriteListProductsEntity] })
   @OneToMany(
     () => FavoriteListProductsEntity,
     (favoriteProducts) => favoriteProducts.favoriteList,

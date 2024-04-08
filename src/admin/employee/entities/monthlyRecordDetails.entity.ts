@@ -40,10 +40,6 @@ export class MonthlyRecordDetailEntity extends BaseEntity {
   @Column({ type: 'uuid' })
   monthlyRecordId: string;
 
-  @ApiProperty({
-    description: 'Monthly record associated with the detail',
-    type: () => MonthlyRecordEntity,
-  })
   @ManyToOne(
     () => MonthlyRecordEntity,
     (monthlyRecord) => monthlyRecord.details,

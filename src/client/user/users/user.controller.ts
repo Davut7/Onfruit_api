@@ -27,9 +27,12 @@ import {
   ApiBody,
   ApiBearerAuth,
   ApiInternalServerErrorResponse,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiOperation,
 } from '@nestjs/swagger';
 
-@ApiTags('Users')
+@ApiTags('client-users')
 @ApiBearerAuth()
 @Controller('users')
 export class UserController {
@@ -37,7 +40,11 @@ export class UserController {
 
   @Get('get-me')
   @UseGuards(ClientAuthGuard)
-  @ApiOkResponse({ description: 'User details retrieved successfully.' })
+  @ApiOperation({ summary: 'Get current user details' })
+  @ApiOkResponse({
+    description: 'User details retrieved successfully.',
+    type: UserEntity,
+  })
   @ApiNotFoundResponse({ description: 'User not found.' })
   getMe(@CurrentUser() currentUser: UserEntity) {
     return this.userService.getMe(currentUser);
@@ -45,6 +52,7 @@ export class UserController {
 
   @Patch('user')
   @UseGuards(ClientAuthGuard)
+  @ApiOperation({ summary: 'Update user information' })
   @ApiOkResponse({ description: 'User updated successfully.' })
   @ApiBadRequestResponse({ description: 'Bad request.' })
   @ApiBody({ type: UserUpdateDto })
@@ -57,9 +65,9 @@ export class UserController {
 
   @Patch('distributer')
   @UseGuards(ClientAuthGuard)
+  @ApiOperation({ summary: 'Update distributor information' })
   @ApiOkResponse({ description: 'Distributer updated successfully.' })
   @ApiBadRequestResponse({ description: 'Bad request.' })
-  @ApiBody({ type: DistributerUpdateDto })
   updateDistributer(
     @Body() dto: DistributerUpdateDto,
     @CurrentUser() currentUser: UserEntity,
@@ -69,6 +77,11 @@ export class UserController {
 
   @Patch('/image')
   @UseGuards(ClientAuthGuard)
+  @ApiOperation({ summary: 'Update user image' })
+  @ApiCreatedResponse({ description: 'Image uploaded successfully.' })
+  @ApiBadRequestResponse({ description: 'Bad request.' })
+  @ApiConsumes('multipart/form-data')
+  @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -85,9 +98,6 @@ export class UserController {
       },
     }),
   )
-  @ApiOkResponse({ description: 'Image uploaded successfully.' })
-  @ApiBadRequestResponse({ description: 'Bad request.' })
-  @ApiInternalServerErrorResponse({ description: 'Internal server error.' })
   updateUserImage(
     @UploadedFile() image: Express.Multer.File,
     @CurrentUser() currentUser: UserEntity,
@@ -98,6 +108,7 @@ export class UserController {
 
   @Delete()
   @UseGuards(ClientAuthGuard)
+  @ApiOperation({ summary: 'Delete user account' })
   @ApiOkResponse({ description: 'User deleted successfully.' })
   @ApiBadRequestResponse({ description: 'Bad request.' })
   @ApiInternalServerErrorResponse({ description: 'Internal server error.' })

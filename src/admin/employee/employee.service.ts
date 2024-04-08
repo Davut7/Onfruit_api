@@ -82,7 +82,7 @@ export class EmployeeService {
     };
   }
 
-  async getOneEmployee(id: string) {
+  async getOneEmployee(employeeId: string) {
     const employee = await this.employeeRepository
       .createQueryBuilder('employees')
       .leftJoinAndSelect('employees.medias', 'medias')
@@ -90,14 +90,14 @@ export class EmployeeService {
       .leftJoinAndSelect('monthlyRecords.penalty', 'penalty')
       .leftJoinAndSelect('monthlyRecords.prepayment', 'prepayments')
       .leftJoinAndSelect('monthlyRecords.details', 'details')
-      .where('employees.id = :id', { id })
+      .where('employees.id = :employeeId', { employeeId })
       .getOne();
     if (!employee) throw new NotFoundException('Employee not found');
     return employee;
   }
 
-  async updateEmployee(id: string, dto: UpdateEmployeeDto) {
-    const employee = await this.getOneEmployee(id);
+  async updateEmployee(employeeId: string, dto: UpdateEmployeeDto) {
+    const employee = await this.getOneEmployee(employeeId);
     Object.assign(employee, dto);
     await this.employeeRepository.save(employee);
     return employee;

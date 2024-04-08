@@ -26,7 +26,7 @@ export class AdminTokenEntity extends BaseEntity {
   })
   userId: string;
 
-  @ApiProperty({ type: () => AdminsEntity })
+
   @OneToOne(() => AdminsEntity, (user) => user.token, {
     onDelete: 'CASCADE',
   })

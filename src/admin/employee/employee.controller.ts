@@ -31,9 +31,9 @@ import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { EmployeeEntity } from './entities/employee.entity';
 import { MediaEntity } from 'src/media/entities/media.entity';
@@ -46,6 +46,7 @@ import { PrePaymentEntity } from './entities/prepayment.entity';
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
 
+  @ApiOperation({ summary: 'Create a new employee' })
   @ApiCreatedResponse({
     description: 'Create a new employee',
     schema: {
@@ -62,6 +63,7 @@ export class EmployeeController {
     return this.employeeService.createEmployee(dto);
   }
 
+  @ApiOperation({ summary: 'Get all employees' })
   @ApiOkResponse({
     description: 'Get all employees',
     schema: {
@@ -77,6 +79,7 @@ export class EmployeeController {
     return this.employeeService.getEmployees(query);
   }
 
+  @ApiOperation({ summary: 'Get one employee' })
   @ApiOkResponse({
     description: 'Get one employee',
     schema: {
@@ -86,16 +89,16 @@ export class EmployeeController {
       },
     },
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Id of the employee' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Employee not found',
   })
-  @Get(':id')
-  getOneEmployee(@Param('id', ParseUUIDPipe) id: string) {
-    return this.employeeService.getOneEmployee(id);
+  @Get(':employeeId')
+  getOneEmployee(@Param('employeeId', ParseUUIDPipe) employeeId: string) {
+    return this.employeeService.getOneEmployee(employeeId);
   }
 
+  @ApiOperation({ summary: 'Update one employee' })
   @ApiOkResponse({
     description: 'Update one employee',
     schema: {
@@ -105,21 +108,21 @@ export class EmployeeController {
       },
     },
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Id of the employee' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Employee not found',
   })
-  @Patch(':id')
+  @Patch(':employeeId')
   updateEmployee(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('employeeId', ParseUUIDPipe) employeeId: string,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
   ) {
-    return this.employeeService.updateEmployee(id, updateEmployeeDto);
+    return this.employeeService.updateEmployee(employeeId, updateEmployeeDto);
   }
 
+  @ApiOperation({ summary: 'Delete one employee' })
   @ApiOkResponse({
-    description: 'Get one employee',
+    description: 'Delete one employee',
     schema: {
       type: 'object',
       properties: {
@@ -131,13 +134,14 @@ export class EmployeeController {
     type: NotFoundException,
     description: 'Employee not found',
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Id of the employee' })
-  @Delete(':id')
-  deleteEmployee(@Param('id', ParseUUIDPipe) id: string) {
-    return this.employeeService.deleteEmployee(id);
+  @Delete(':employeeId')
+  deleteEmployee(@Param('id', ParseUUIDPipe) employeeId: string) {
+    return this.employeeService.deleteEmployee(employeeId);
   }
 
+  @ApiOperation({ summary: 'Create employee image' })
   @ApiCreatedResponse({
+    description: 'Employee image created successfully',
     schema: {
       type: 'object',
       properties: {
@@ -150,12 +154,11 @@ export class EmployeeController {
     },
   })
   @ApiConsumes('multipart/form-data')
-  @ApiParam({ name: 'id', type: 'string', description: 'Employee id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Employee not found',
   })
-  @Post(':id/image')
+  @Post(':employeeId/image')
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -174,12 +177,13 @@ export class EmployeeController {
   )
   async createSubcategoryImage(
     @UploadedFile() image: Express.Multer.File,
-    @Param('id', ParseUUIDPipe) employeeId: string,
+    @Param('employeeId', ParseUUIDPipe) employeeId: string,
   ) {
     if (!image) throw new BadRequestException('Please provide an image');
     return await this.employeeService.createEmployeeImage(employeeId, image);
   }
 
+  @ApiOperation({ summary: 'Delete employee image' })
   @ApiOkResponse({
     description: 'Employee image deleted successfully',
     schema: {
@@ -196,12 +200,12 @@ export class EmployeeController {
     type: NotFoundException,
     description: 'Media not found',
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Employee id' })
-  @Delete(':id/image')
+  @Delete(':mediaId/image')
   async deleteEmployeeImage(@Param('id', ParseUUIDPipe) mediaId: string) {
     return await this.employeeService.deleteEmployeeImage(mediaId);
   }
 
+  @ApiOperation({ summary: 'Create penalty for employee' })
   @ApiOkResponse({
     description: 'Penalty employee',
     schema: {
@@ -223,15 +227,15 @@ export class EmployeeController {
     type: ConflictException,
     description: 'Monthly salary is not enough to pay penalty',
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Employee id' })
-  @Post('/penalty/:id')
+  @Post('/penalty/:employeeId')
   async createPenalty(
     @Body() dto: CreatePenaltyDto,
-    @Param('id', ParseUUIDPipe) employeeId: string,
+    @Param('employeeId', ParseUUIDPipe) employeeId: string,
   ) {
     return await this.employeeService.createPenalty(employeeId, dto);
   }
 
+  @ApiOperation({ summary: 'Delete employee penalty' })
   @ApiOkResponse({
     description: 'Delete penalty',
     schema: {
@@ -244,7 +248,6 @@ export class EmployeeController {
       },
     },
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Penalty id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Penalty not found',
@@ -257,11 +260,12 @@ export class EmployeeController {
     type: NotFoundException,
     description: 'Monthly record detail not found for the penalty',
   })
-  @Delete('/penalty/:id')
-  async deletePenalty(@Param('id', ParseUUIDPipe) penaltyId: string) {
+  @Delete('/penalty/:penaltyId')
+  async deletePenalty(@Param('penaltyId', ParseUUIDPipe) penaltyId: string) {
     return await this.employeeService.deletePenalty(penaltyId);
   }
 
+  @ApiOperation({ summary: 'Create prepayment for employee' })
   @ApiOkResponse({
     description: 'Create employee prepayment',
     schema: {
@@ -275,12 +279,15 @@ export class EmployeeController {
       },
     },
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Employee id' })
+  @ApiNotFoundResponse({
+    type: NotFoundException,
+    description: 'Employee not found',
+  })
   @ApiConflictResponse({
     type: ConflictException,
     description: 'Monthly salary is not enough to pay penalty',
   })
-  @Post('/prepayment/:id')
+  @Post('/prepayment/:employeeId')
   async createPrepayment(
     @Body() dto: CreatePrepaymentDto,
     @Param('id', ParseUUIDPipe) employeeId: string,
@@ -288,6 +295,7 @@ export class EmployeeController {
     return await this.employeeService.createPrepayment(employeeId, dto);
   }
 
+  @ApiOperation({ summary: 'Delete employee prepayment' })
   @ApiOkResponse({
     description: 'Delete prepayment',
     schema: {
@@ -300,7 +308,6 @@ export class EmployeeController {
       },
     },
   })
-  @ApiParam({ name: 'id', type: 'string', description: 'Prepayment id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Prepayment not found',
@@ -313,8 +320,10 @@ export class EmployeeController {
     type: NotFoundException,
     description: 'Monthly record detail not found for the penalty',
   })
-  @Delete('/prepayment/:id')
-  async deletePrepayment(@Param('id', ParseUUIDPipe) prepaymentId: string) {
+  @Delete('/prepayment/:prepaymentId')
+  async deletePrepayment(
+    @Param('prepaymentId', ParseUUIDPipe) prepaymentId: string,
+  ) {
     return await this.employeeService.deletePrepayment(prepaymentId);
   }
 }

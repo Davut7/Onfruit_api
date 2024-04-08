@@ -21,9 +21,9 @@ import {
   ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { RealizationEntity } from './entities/realizations.entity';
 
@@ -33,6 +33,7 @@ import { RealizationEntity } from './entities/realizations.entity';
 export class RealizationController {
   constructor(private readonly realizationService: RealizationService) {}
 
+  @ApiOperation({ summary: 'Create a new realization' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Product not found',
@@ -41,19 +42,19 @@ export class RealizationController {
     type: BadRequestException,
     description: 'Article is not equal with product article',
   })
-  @ApiParam({ name: 'id', description: 'Product id' })
   @ApiOkResponse({
     type: RealizationEntity,
     description: 'Realization created successfully',
   })
-  @Post(':id')
+  @Post(':productId')
   createRealization(
     @Body() dto: CreateRealizationDto,
-    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
   ) {
     return this.realizationService.createRealization(dto, productId);
   }
 
+  @ApiOperation({ summary: 'Get all realizations' })
   @ApiOkResponse({
     description: 'Realizations retrieved successfully',
     schema: {
@@ -69,7 +70,7 @@ export class RealizationController {
     return this.realizationService.getRealizations(query);
   }
 
-  @ApiParam({ name: 'id', description: 'Product id' })
+  @ApiOperation({ summary: 'Get realization by product ID' })
   @ApiOkResponse({
     description: 'Realizations by product id retrieved successfully',
     schema: {
@@ -81,15 +82,15 @@ export class RealizationController {
       },
     },
   })
-  @Get(':id')
+  @Get(':productId')
   getRealizationByProductId(
     @Query() query: GetOneRealizationDto,
-    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
   ) {
     return this.realizationService.getRealizationByProductId(productId, query);
   }
 
-  @ApiParam({ name: 'id', description: 'Realization id' })
+  @ApiOperation({ summary: 'Update a realization' })
   @ApiOkResponse({
     description: 'Realization updated successfully',
     type: RealizationEntity,
@@ -98,14 +99,15 @@ export class RealizationController {
     type: NotFoundException,
     description: 'Realization not found',
   })
-  @Patch(':id')
+  @Patch(':realizationId')
   updateRealization(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('realizationId', ParseUUIDPipe) realizationId: string,
     @Body() dto: UpdateRealizationDto,
   ) {
-    return this.realizationService.updateRealization(id, dto);
+    return this.realizationService.updateRealization(realizationId, dto);
   }
 
+  @ApiOperation({ summary: 'Delete a realization' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Realization not found',
@@ -122,8 +124,10 @@ export class RealizationController {
       },
     },
   })
-  @Delete(':id')
-  deleteRealization(@Param('id', ParseUUIDPipe) id: string) {
-    return this.realizationService.deleteRealization(id);
+  @Delete(':realizationId')
+  deleteRealization(
+    @Param('realizationId', ParseUUIDPipe) realizationId: string,
+  ) {
+    return this.realizationService.deleteRealization(realizationId);
   }
 }

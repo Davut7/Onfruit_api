@@ -27,7 +27,7 @@ export class ActionEntity extends BaseEntity {
   @Column({ type: 'uuid', nullable: false })
   subjectId: string;
 
-  @ApiProperty({ type: () => SubjectEntity })
+
   @ManyToOne(() => SubjectEntity, (subject) => subject.action, {
     onDelete: 'CASCADE',
   })

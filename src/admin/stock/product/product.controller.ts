@@ -31,7 +31,7 @@ import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
+  ApiOperation,
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
@@ -49,6 +49,7 @@ export class ProductController {
     type: [ManufacturerCountriesEntity],
     description: 'Countries got successfully',
   })
+  @ApiOperation({ summary: 'Getting countries' })
   @Get('/countries')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
@@ -59,7 +60,6 @@ export class ProductController {
     return this.productService.getCountries(query);
   }
 
-  @ApiParam({ type: 'string', name: 'id', description: 'Subcategory id' })
   @ApiCreatedResponse({
     description: 'Product created successfully',
     schema: {
@@ -73,11 +73,12 @@ export class ProductController {
       },
     },
   })
+  @ApiOperation({ summary: 'Create product' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Subcategory not found',
   })
-  @Post(':id')
+  @Post(':subcategoryId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
@@ -91,7 +92,6 @@ export class ProductController {
     return this.productService.createProduct(dto);
   }
 
-  @ApiParam({ type: 'string', name: 'id', description: 'Product id' })
   @ApiOkResponse({
     description: 'Product image uploaded successfully',
     schema: {
@@ -105,11 +105,12 @@ export class ProductController {
       },
     },
   })
+  @ApiOperation({ summary: 'Upload product image' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Product not found',
   })
-  @Post(':id/image')
+  @Post(':productId/image')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
   @UseInterceptors(
@@ -130,13 +131,12 @@ export class ProductController {
   )
   async createCategoryImage(
     @UploadedFile() image: Express.Multer.File,
-    @Param('id', ParseUUIDPipe) categoryId: string,
+    @Param('productId', ParseUUIDPipe) categoryId: string,
   ) {
     if (!image) throw new BadRequestException('Please provide an image');
     return this.productService.createProductImage(categoryId, image);
   }
 
-  @ApiParam({ type: 'string', name: 'id', description: 'Product image id' })
   @ApiOkResponse({
     description: 'Product image deleted successfully',
     schema: {
@@ -149,11 +149,12 @@ export class ProductController {
       },
     },
   })
+  @ApiOperation({ summary: 'Delete product image' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Image not found',
   })
-  @Delete(':id/image')
+  @Delete(':mediaId/image')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
   async deleteCategoryImage(@Param('id', ParseUUIDPipe) mediaId: string) {
@@ -161,7 +162,7 @@ export class ProductController {
   }
 
   @ApiOkResponse({
-    description: 'Product image deleted successfully',
+    description: 'Product returned successfully',
     schema: {
       type: 'object',
       properties: {
@@ -170,6 +171,7 @@ export class ProductController {
       },
     },
   })
+  @ApiOperation({ summary: 'Get products' })
   @Get()
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
@@ -195,6 +197,7 @@ export class ProductController {
       },
     },
   })
+  @ApiOperation({ summary: 'Get product by article' })
   @Get('/article')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
@@ -218,19 +221,19 @@ export class ProductController {
       },
     },
   })
-  @ApiParam({ type: 'string', name: 'id', description: 'Product id' })
+  @ApiOperation({ summary: 'Get product by id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Product by id not found',
   })
-  @Get(':id')
+  @Get(':productId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
   })
-  async getOneProduct(@Param('id', ParseUUIDPipe) id: string) {
-    return this.productService.getOneProduct(id);
+  async getOneProduct(@Param('productId', ParseUUIDPipe) productId: string) {
+    return this.productService.getOneProduct(productId);
   }
 
   @ApiOkResponse({
@@ -246,22 +249,22 @@ export class ProductController {
       },
     },
   })
-  @ApiParam({ type: 'string', name: 'id', description: 'Product id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Product by id not found',
   })
-  @Patch(':id')
+  @ApiOperation({ summary: 'Update product by id' })
+  @Patch(':productId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Update,
     subject: SubjectEnum.Products,
   })
   async updateProduct(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
     @Body() updateProductDto: UpdateProductDto,
   ) {
-    return this.productService.updateProduct(id, updateProductDto);
+    return this.productService.updateProduct(productId, updateProductDto);
   }
 
   @ApiOkResponse({
@@ -277,18 +280,18 @@ export class ProductController {
       },
     },
   })
-  @ApiParam({ type: 'string', name: 'id', description: 'Product id' })
+  @ApiOperation({ summary: 'Delete product by id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Product by id not found',
   })
-  @Delete(':id')
+  @Delete(':productId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Delete,
     subject: SubjectEnum.Products,
   })
-  async deleteProduct(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.productService.deleteProduct(id);
+  async deleteProduct(@Param('productId', ParseUUIDPipe) productId: string) {
+    return await this.productService.deleteProduct(productId);
   }
 }

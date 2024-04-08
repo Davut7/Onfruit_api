@@ -48,7 +48,6 @@ export class CategoryEntity extends BaseEntity {
   @Index({ unique: true })
   tkmTitle: string;
 
-  @ApiProperty({ type: () => [SubcategoryEntity] })
   @OneToMany(
     () => SubcategoryEntity,
     (subcategories) => subcategories.category,
@@ -56,7 +55,6 @@ export class CategoryEntity extends BaseEntity {
   )
   subcategories: SubcategoryEntity[];
 
-  @ApiProperty({ type: () => MediaEntity })
   @OneToMany(() => MediaEntity, (media) => media.category)
   medias: MediaEntity[];
 }

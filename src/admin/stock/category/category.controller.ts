@@ -28,11 +28,12 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiConflictResponse,
+  ApiConsumes,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { CategoryEntity } from './entities/category.entity';
 import { MediaEntity } from 'src/media/entities/media.entity';
@@ -43,6 +44,7 @@ import { MediaEntity } from 'src/media/entities/media.entity';
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
+  @ApiOperation({ summary: 'Create a new category' })
   @ApiOkResponse({
     description: 'Category created successfully',
     schema: {
@@ -55,7 +57,7 @@ export class CategoryController {
   })
   @ApiConflictResponse({
     type: ConflictException,
-    description: 'Category with this titles already exists!',
+    description: 'Category with this title already exists!',
   })
   @Post()
   @UseGuards(AbilitiesGuard)
@@ -64,6 +66,7 @@ export class CategoryController {
     return this.categoryService.createCategory(dto);
   }
 
+  @ApiOperation({ summary: 'Get all categories' })
   @ApiOkResponse({
     description: 'Categories returned successfully',
     schema: {
@@ -83,7 +86,8 @@ export class CategoryController {
   async getCategories() {
     return this.categoryService.getCategories();
   }
-  @ApiParam({ type: 'string', name: 'id', description: 'Category id' })
+
+  @ApiOperation({ summary: 'Update a category by ID' })
   @ApiOkResponse({
     description: 'Category updated by id',
     schema: {
@@ -98,16 +102,17 @@ export class CategoryController {
     type: NotFoundException,
     description: 'Category not found',
   })
-  @Patch(':id')
+  @Patch(':categoryId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Update, subject: SubjectEnum.Products })
   async updateCategory(
-    @Param('id', ParseUUIDPipe) categoryId: string,
+    @Param('categoryId', ParseUUIDPipe) categoryId: string,
     @Body() dto: UpdateCategoryDto,
   ) {
     return this.categoryService.updateCategory(categoryId, dto);
   }
 
+  @ApiOperation({ summary: 'Get a category by ID' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Category not found',
@@ -116,10 +121,10 @@ export class CategoryController {
     type: CategoryEntity,
     description: 'Category returned by id',
   })
-  @Get(':id')
+  @Get(':categoryId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Read, subject: SubjectEnum.Products })
-  async getOneCategory(@Param('id', ParseUUIDPipe) categoryId: string) {
+  async getOneCategory(@Param('categoryId', ParseUUIDPipe) categoryId: string) {
     const category = await this.categoryService.getOneCategory(categoryId);
     return {
       message: `Category with id ${category.id} returned successfully`,
@@ -127,6 +132,7 @@ export class CategoryController {
     };
   }
 
+  @ApiOperation({ summary: 'Delete a category by ID' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Category not found',
@@ -140,15 +146,16 @@ export class CategoryController {
       },
     },
   })
-  @Delete(':id')
+  @Delete(':categoryId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Delete, subject: SubjectEnum.Products })
-  async deleteCategory(@Param('id', ParseUUIDPipe) categoryId: string) {
+  async deleteCategory(@Param('categoryId', ParseUUIDPipe) categoryId: string) {
     return this.categoryService.deleteCategory(categoryId);
   }
 
+  @ApiOperation({ summary: 'Upload an image for a category' })
   @ApiOkResponse({
-    description: 'Category imaged upload successfully',
+    description: 'Category image uploaded successfully',
     schema: {
       type: 'object',
       properties: {
@@ -168,8 +175,9 @@ export class CategoryController {
     type: NotFoundException,
     description: 'Image not provided',
   })
-  @Post(':id/image')
+  @Post(':categoryId/image')
   @UseGuards(AbilitiesGuard)
+  @ApiConsumes('multipart/form-data')
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
   @UseInterceptors(
     FileInterceptor('image', {
@@ -189,15 +197,15 @@ export class CategoryController {
   )
   async createCategoryImage(
     @UploadedFile() image: Express.Multer.File,
-    @Param('id', ParseUUIDPipe) categoryId: string,
+    @Param('categoryId', ParseUUIDPipe) categoryId: string,
   ) {
     if (!image) throw new BadRequestException('Please provide an image');
     return this.categoryService.createCategoryImage(categoryId, image);
   }
 
-  @ApiParam({ name: 'id', type: 'string', description: 'Category id' })
+  @ApiOperation({ summary: 'Delete an image of a category' })
   @ApiOkResponse({
-    description: 'Category imaged deleted successfully',
+    description: 'Category image deleted successfully',
     schema: {
       type: 'object',
       properties: {
@@ -208,10 +216,10 @@ export class CategoryController {
       },
     },
   })
-  @Delete(':id/image')
+  @Delete(':mediaId/image')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
-  async deleteCategoryImage(@Param('id', ParseUUIDPipe) mediaId: string) {
+  async deleteCategoryImage(@Param('mediaId', ParseUUIDPipe) mediaId: string) {
     return this.categoryService.deleteCategoryImage(mediaId);
   }
 }

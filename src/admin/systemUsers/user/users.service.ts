@@ -94,16 +94,16 @@ export class AdminUsersService {
     return user;
   }
 
-  async createSubject(dto: CreateSubjectDto) {
-    this.logger.log(`Creating subject for  admin user with id ${dto.adminId}!`);
-    const user = await this.getOneUser(dto.adminId);
+  async createSubject(dto: CreateSubjectDto, adminId: string) {
+    this.logger.log(`Creating subject for  admin user with id ${adminId}!`);
+    const user = await this.getOneUser(adminId);
     const candidate = await this.adminSubjectRepository.findOne({
-      where: { subject: dto.subject, adminId: dto.adminId },
+      where: { subject: dto.subject, adminId: adminId },
     });
     if (candidate) {
       this.logger.error(`You cannot create  subject for  root user!`);
       throw new ConflictException(
-        `User with id ${dto.adminId} already have subject ${dto.subject}`,
+        `User with id ${adminId} already have subject ${dto.subject}`,
       );
     }
     if (user.role === 'root')
@@ -114,12 +114,11 @@ export class AdminUsersService {
     await this.adminSubjectRepository.save(subject);
     const createActionDto: CreateActionDto = {
       action: ActionEnum.Read,
-      subjectId: subject.id,
     };
 
-    const action = await this.createAction(createActionDto);
+    const action = await this.createAction(createActionDto, subject.id);
     this.logger.log(
-      `Subject for  admin user with id ${dto.adminId} created successfully!`,
+      `Subject for  admin user with id ${adminId} created successfully!`,
     );
     return { subject: subject, action: action };
   }
@@ -137,20 +136,20 @@ export class AdminUsersService {
     this.logger.log(`Subject with id ${subjectId} deleting successfully!`);
     return { message: 'Subject deleted successfully!' };
   }
-  async createAction(dto: CreateActionDto) {
-    this.logger.log(`Creating action for  subject with id ${dto.subjectId}!`);
+  async createAction(dto: CreateActionDto, subjectId: string) {
+    this.logger.log(`Creating action for  subject with id ${subjectId}!`);
     const candidate = await this.adminActionRepository.findOne({
-      where: { action: dto.action, subjectId: dto.subjectId },
+      where: { action: dto.action, subjectId: subjectId },
     });
     if (candidate)
       throw new ConflictException(
-        `User with subject id ${dto.subjectId} already have action ${dto.action}`,
+        `User with subject id ${subjectId} already have action ${dto.action}`,
       );
 
     const action = this.adminActionRepository.create(dto);
 
     this.adminActionRepository.save(action);
-    this.logger.log(`Action created for subject with id ${dto.subjectId}!`);
+    this.logger.log(`Action created for subject with id ${subjectId}!`);
     return action;
   }
 

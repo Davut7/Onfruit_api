@@ -88,24 +88,12 @@ export class EmployeeEntity extends BaseEntity {
   @Column({ type: 'date', nullable: false })
   hiredTime: Date;
 
-  @ApiProperty({
-    title: 'Monthly Records',
-    name: 'monthlyRecords',
-    description: 'Monthly records of the employee',
-    type: () => [MonthlyRecordEntity],
-  })
   @OneToMany(
     () => MonthlyRecordEntity,
     (monthlyRecord) => monthlyRecord.employee,
   )
   monthlyRecords: MonthlyRecordEntity[];
 
-  @ApiProperty({
-    title: 'Medias',
-    name: 'medias',
-    description: 'Media associated with the employee',
-    type: () => [MediaEntity],
-  })
   @OneToMany(() => MediaEntity, (media) => media.employee)
   medias: MediaEntity[];
 }

@@ -67,7 +67,6 @@ export class ProductAttributesEntity extends BaseEntity {
   })
   productId: string;
 
-  @ApiProperty({ type: () => ProductEntity })
   @ManyToOne(() => ProductEntity, (product) => product.productAttributes, {
     onDelete: 'CASCADE',
   })

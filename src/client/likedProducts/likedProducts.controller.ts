@@ -1,13 +1,10 @@
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
-  ApiConflictResponse,
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { LikedProductsEntity } from './entities/likedProducts.entity';
@@ -19,7 +16,6 @@ import {
   ParseUUIDPipe,
   Controller,
   Post,
-  Body,
   Get,
   Param,
   Delete,
@@ -44,12 +40,6 @@ export class LikedProductsController {
   })
   @ApiBadRequestResponse({ description: 'Invalid request' })
   @Post('product/:productId')
-  @ApiParam({
-    name: 'productId',
-    description: 'Product ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
-  })
   @UseGuards(ClientAuthGuard)
   createLikedProduct(
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -77,12 +67,6 @@ export class LikedProductsController {
   @ApiOkResponse({ description: 'Liked product deleted successfully' })
   @ApiNotFoundResponse({ description: 'Liked product not found' })
   @Delete('product/:likedProductId')
-  @ApiParam({
-    name: 'likedProductId',
-    description: 'Liked Product ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
-  })
   @UseGuards(ClientAuthGuard)
   deleteLikedProducts(
     @Param('likedProductId', ParseUUIDPipe) likedProductId: string,

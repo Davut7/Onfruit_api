@@ -73,12 +73,10 @@ export class ClientAddressEntity extends BaseEntity {
   @Column({ type: 'uuid', nullable: false })
   userId: string;
 
-  @ApiProperty({ type: () => UserEntity })
   @ManyToOne(() => UserEntity, (user) => user.id, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
 
-  @ApiProperty({ type: () => OrderEntity })
   @OneToMany(() => OrderEntity, (order) => order.deliveredAddress)
   order: OrderEntity;
 }

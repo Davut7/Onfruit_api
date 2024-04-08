@@ -79,17 +79,14 @@ export class SubcategoryEntity extends BaseEntity {
   @Column({ type: 'uuid', nullable: false })
   categoryId: string;
 
-  @ApiProperty({ type: () => CategoryEntity })
   @ManyToOne(() => CategoryEntity, (category) => category.subcategories, {
     onDelete: 'CASCADE',
   })
   category: CategoryEntity;
 
-  @ApiProperty({ type: () => [ProductEntity] })
   @OneToMany(() => ProductEntity, (product) => product.subcategory)
   products: ProductEntity[];
 
-  @ApiProperty({ type: () => [MediaEntity] })
   @OneToMany(() => MediaEntity, (media) => media.subcategory)
   medias: MediaEntity[];
 }

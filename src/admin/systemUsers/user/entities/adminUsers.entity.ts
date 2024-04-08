@@ -79,11 +79,11 @@ export class AdminsEntity extends BaseEntity {
   @Column({ type: 'boolean', nullable: false, default: false })
   isActive: boolean;
 
-  @ApiProperty({ type: () => AdminTokenEntity })
+
   @OneToOne(() => AdminTokenEntity, (token) => token.user)
   token: AdminTokenEntity;
 
-  @ApiProperty({ type: () => [SubjectEntity] })
+
   @OneToMany(() => SubjectEntity, (subjects) => subjects.admin)
   subjects: SubjectEntity[];
 }

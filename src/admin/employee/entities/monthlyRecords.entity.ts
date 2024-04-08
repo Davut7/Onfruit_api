@@ -52,23 +52,11 @@ export class MonthlyRecordEntity extends BaseEntity {
   @Column({ type: 'uuid' })
   employeeId: string;
 
-  @ApiProperty({
-    title: 'Employee',
-    name: 'employee',
-    description: 'Employee associated with the monthly record',
-    type: () => EmployeeEntity,
-  })
   @ManyToOne(() => EmployeeEntity, (employee) => employee.monthlyRecords, {
     onDelete: 'SET NULL',
   })
   employee: EmployeeEntity;
 
-  @ApiProperty({
-    title: 'Monthly Record Details',
-    name: 'details',
-    description: 'Details of the monthly record',
-    type: () => [MonthlyRecordDetailEntity],
-  })
   @OneToMany(
     () => MonthlyRecordDetailEntity,
     (recordDetail) => recordDetail.monthlyRecord,
@@ -76,21 +64,9 @@ export class MonthlyRecordEntity extends BaseEntity {
   )
   details: MonthlyRecordDetailEntity[];
 
-  @ApiProperty({
-    title: 'Penalties',
-    name: 'penalty',
-    description: 'Penalties associated with the monthly record',
-    type: () => [PenaltyEntity],
-  })
   @OneToMany(() => PenaltyEntity, (penalty) => penalty.monthlyRecord)
   penalty: PenaltyEntity[];
 
-  @ApiProperty({
-    title: 'Prepayments',
-    name: 'prepayment',
-    description: 'Prepayments associated with the monthly record',
-    type: () => [PrePaymentEntity],
-  })
   @OneToMany(() => PrePaymentEntity, (prepayment) => prepayment.monthlyRecord)
   prepayment: PrePaymentEntity[];
 }

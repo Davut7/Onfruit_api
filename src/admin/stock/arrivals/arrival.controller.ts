@@ -22,17 +22,22 @@ import { GetOneArrivalDto } from './dto/getOneArrival.dto';
 import { UpdateArrivalDto } from './dto/updateArrival.dto';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
+  ApiTags,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { ArrivalEntity } from './entities/arrival.entity';
 
+@ApiBearerAuth()
+@ApiTags('arrivals')
 @Controller('stock/arrival')
 export class ArrivalController {
   constructor(private readonly arrivalService: ArrivalService) {}
 
+  @ApiOperation({ summary: 'Create arrival for a product' })
   @ApiOkResponse({
     description: 'Arrival created successfully',
     schema: {
@@ -51,8 +56,7 @@ export class ArrivalController {
     type: BadRequestException,
     description: 'Provided article not capable with product',
   })
-  @ApiParam({ name: 'id', description: 'Product id' })
-  @Post(':id')
+  @Post(':productId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
@@ -60,12 +64,13 @@ export class ArrivalController {
   })
   async createArrival(
     @Body() dto: CreateArrivalDto,
-    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
   ) {
     dto.productId = productId;
     return this.arrivalService.createArrival(dto);
   }
 
+  @ApiOperation({ summary: 'Get all arrivals' })
   @ApiOkResponse({
     description: 'Arrival retrieved successfully',
     schema: {
@@ -86,7 +91,7 @@ export class ArrivalController {
     return this.arrivalService.getArrivals(query);
   }
 
-  @ApiParam({ name: 'id', description: 'Arrival id' })
+  @ApiOperation({ summary: 'Get arrival by ID' })
   @ApiOkResponse({
     description: 'Arrival by id retrieved successfully',
     schema: {
@@ -98,7 +103,7 @@ export class ArrivalController {
       },
     },
   })
-  @Get(':id')
+  @Get(':arrivalId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
@@ -106,29 +111,30 @@ export class ArrivalController {
   })
   async getByProductId(
     @Query() query: GetOneArrivalDto,
-    @Param('id', ParseUUIDPipe) arrivalId: string,
+    @Param('arrivalId', ParseUUIDPipe) arrivalId: string,
   ) {
     return this.arrivalService.getByProductId(arrivalId, query);
   }
 
+  @ApiOperation({ summary: 'Update an arrival' })
   @ApiOkResponse({
     description: 'Arrival updated successfully',
     type: ArrivalEntity,
   })
-  @ApiParam({ name: 'id', description: 'Arrival id' })
-  @Patch(':id')
+  @Patch(':arrivalId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Update,
     subject: SubjectEnum.Warehouse,
   })
   async updateArrival(
-    @Param('id', ParseUUIDPipe) arrivalId: string,
+    @Param('arrivalId', ParseUUIDPipe) arrivalId: string,
     @Body() updateArrivalDto: UpdateArrivalDto,
   ) {
     return this.arrivalService.updateArrival(arrivalId, updateArrivalDto);
   }
 
+  @ApiOperation({ summary: 'Delete an arrival' })
   @ApiOkResponse({
     description: 'Arrival deleted successfully',
     schema: {
@@ -138,14 +144,13 @@ export class ArrivalController {
       },
     },
   })
-  @ApiParam({ name: 'id', description: 'Arrival id' })
-  @Delete(':id')
+  @Delete(':arrivalId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Delete,
     subject: SubjectEnum.Warehouse,
   })
-  async deleteArrival(@Param('id') arrivalId: string) {
+  async deleteArrival(@Param('arrivalId') arrivalId: string) {
     return this.arrivalService.deleteArrival(arrivalId);
   }
 }

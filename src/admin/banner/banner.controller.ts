@@ -26,10 +26,9 @@ import {
   ApiCreatedResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
-  ApiResponse,
   ApiTags,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { BannerEntity } from './entities/banner.entity';
 
@@ -39,6 +38,7 @@ import { BannerEntity } from './entities/banner.entity';
 export class BannerController {
   constructor(private readonly bannerService: BannerService) {}
 
+  @ApiOperation({ summary: 'Create a new banner' })
   @ApiCreatedResponse({
     description: 'Banner created successfully',
     schema: {
@@ -78,6 +78,7 @@ export class BannerController {
     return this.bannerService.createBanner(dto, image);
   }
 
+  @ApiOperation({ summary: 'Get banners' })
   @ApiOkResponse({
     schema: {
       type: 'object',
@@ -97,32 +98,31 @@ export class BannerController {
     return this.bannerService.getBanners(query);
   }
 
+  @ApiOperation({ summary: 'Get one banner by ID' })
   @ApiOkResponse({
     type: BannerEntity,
     description: 'Banner returned successfully',
   })
-  @ApiParam({ type: 'string', name: 'id', description: 'Banner id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Banner not found',
   })
-  @Get(':id')
-  async getOneBanner(@Param('id', ParseUUIDPipe) bannerId: string) {
+  @Get(':bannerId')
+  async getOneBanner(@Param('bannerId', ParseUUIDPipe) bannerId: string) {
     return this.bannerService.getOneBanner(bannerId);
   }
 
-  @ApiResponse({
-    status: 200,
+  @ApiOperation({ summary: 'Delete a banner by ID' })
+  @ApiOkResponse({
     description: 'Banner deleted successfully',
     schema: { type: 'object', properties: { message: { type: 'string' } } },
   })
-  @ApiParam({ type: 'string', name: 'id', description: 'Banner id' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Banner not found',
   })
-  @Delete(':id')
-  async deleteBanner(@Param('id', ParseUUIDPipe) bannerId: string) {
+  @Delete(':bannerId')
+  async deleteBanner(@Param('bannerId', ParseUUIDPipe) bannerId: string) {
     return this.bannerService.deleteBanner(bannerId);
   }
 }

@@ -77,12 +77,12 @@ export class BasketEntity extends BaseEntity {
   @Column({ type: 'uuid', unique: true })
   userId: string;
 
-  @ApiProperty({ type: () => UserEntity })
+
   @ManyToOne(() => UserEntity, (user) => user.basket)
   @JoinColumn({ name: 'userId' })
   user: UserEntity;
 
-  @ApiProperty({ type: () => ProductEntity })
+
   @ManyToOne(() => ProductEntity, (prod) => prod.basketProduct, {
     cascade: true,
   })

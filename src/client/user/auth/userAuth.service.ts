@@ -33,10 +33,9 @@ export class ClientAuthService {
       );
     const user = this.userRepository.create(dto);
     await this.userRepository.save(user);
-    const code = await this.sendActivationCode(user.id);
+    await this.sendActivationCode(user.id);
     return {
       id: user.id,
-      code: code.code,
       message: 'User registered successfully!',
     };
   }
@@ -50,10 +49,9 @@ export class ClientAuthService {
       );
     const user = this.userRepository.create(dto);
     await this.userRepository.save(user);
-    const code = await this.sendActivationCode(user.id);
+    await this.sendActivationCode(user.id);
     return {
       id: user.id,
-      code: code.code,
       message: 'Distributer registered successfully!',
     };
   }
@@ -79,10 +77,9 @@ export class ClientAuthService {
 
   async userLogin(dto: UserLoginDto) {
     const user = await this.getUserByNumber(dto.phoneNumber);
-    const activationCode = await this.sendActivationCode(user.id);
+    await this.sendActivationCode(user.id);
     return {
       id: user.id,
-      activationCode: activationCode.code,
       message: 'User login successfully!',
     };
   }
@@ -130,7 +127,6 @@ export class ClientAuthService {
     user.codeTime = new Date();
     this.userRepository.save(user);
     return {
-      code: user.activationCode,
       message: 'Code sent successfully!',
     };
   }

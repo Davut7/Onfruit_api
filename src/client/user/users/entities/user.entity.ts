@@ -140,59 +140,24 @@ export class UserEntity extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   isActivated: boolean;
 
-  @ApiProperty({
-    description: 'The token associated with the user',
-    title: 'User Token',
-    name: 'token',
-  })
   @OneToOne(() => UserTokenEntity, (token) => token.user)
   token: UserTokenEntity;
 
-  @ApiProperty({
-    description: 'The addresses associated with the user',
-    title: 'User Addresses',
-    name: 'addresses',
-  })
   @OneToMany(() => ClientAddressEntity, (addresses) => addresses.userId)
   addresses: ClientAddressEntity[];
 
-  @ApiProperty({
-    description: 'The orders placed by the user',
-    title: 'User Orders',
-    name: 'orders',
-  })
   @OneToMany(() => OrderEntity, (orders) => orders.user)
   orders: OrderEntity[];
 
-  @ApiProperty({
-    description: 'The products liked by the user',
-    title: 'Liked Products',
-    name: 'likedProducts',
-  })
   @OneToMany(() => LikedProductsEntity, (likedProducts) => likedProducts.user)
   likedProducts: LikedProductsEntity[];
 
-  @ApiProperty({
-    description: 'The favorite lists created by the user',
-    title: 'Favorite Lists',
-    name: 'favoriteList',
-  })
   @OneToMany(() => FavoriteListEntity, (favoriteList) => favoriteList.user)
   favoriteList: FavoriteListEntity[];
 
-  @ApiProperty({
-    description: 'The basket associated with the user',
-    title: 'User Basket',
-    name: 'basket',
-  })
   @OneToMany(() => BasketEntity, (basket) => basket.user)
   basket: BasketEntity[];
 
-  @ApiProperty({
-    description: 'The media associated with the user',
-    title: 'User Media',
-    name: 'media',
-  })
   @OneToOne(() => MediaEntity, (media) => media.user)
   media: MediaEntity;
 }

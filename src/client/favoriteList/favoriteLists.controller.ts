@@ -6,7 +6,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -74,22 +73,16 @@ export class FavoriteListsController {
     type: FavoriteListEntity,
   })
   @ApiNotFoundResponse({ description: 'Favorite list not found' })
-  @ApiParam({
-    name: 'id',
-    description: 'Favorite list ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
-  })
   @ApiQuery({
     name: 'lng',
     description: 'Language code',
     required: false,
     example: 'en',
   })
-  @Get(':id')
+  @Get(':favoriteListId')
   @UseGuards(ClientAuthGuard)
   getOneFavoriteList(
-    @Param('id', ParseUUIDPipe)
+    @Param('favoriteListId', ParseUUIDPipe)
     favoriteListId: string,
     @Query()
     query: GetOneFavoriteListFilter,
@@ -108,16 +101,10 @@ export class FavoriteListsController {
     type: FavoriteListEntity,
   })
   @ApiNotFoundResponse({ description: 'Favorite list not found' })
-  @ApiParam({
-    name: 'id',
-    description: 'Favorite list ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
-  })
-  @Patch(':id')
+  @Patch(':favoriteListId')
   @UseGuards(ClientAuthGuard)
   updateFavoriteList(
-    @Param('id', ParseUUIDPipe)
+    @Param('favoriteListId', ParseUUIDPipe)
     favoriteListId: string,
     @Body() dto: UpdateFavoriteListDto,
   ) {
@@ -127,16 +114,10 @@ export class FavoriteListsController {
   @ApiOperation({ summary: 'Delete a specific favorite list' })
   @ApiOkResponse({ description: 'Favorite list deleted successfully' })
   @ApiNotFoundResponse({ description: 'Favorite list not found' })
-  @ApiParam({
-    name: 'id',
-    description: 'Favorite list ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
-  })
-  @Delete(':id')
+  @Delete(':favoriteListId')
   @UseGuards(ClientAuthGuard)
   deleteFavoriteList(
-    @Param('id', ParseUUIDPipe)
+    @Param('favoriteListId', ParseUUIDPipe)
     favoriteListId: string,
   ) {
     return this.favoriteListsService.deleteFavoriteList(favoriteListId);
@@ -149,18 +130,6 @@ export class FavoriteListsController {
   })
   @ApiNotFoundResponse({
     description: 'Product not found or already in favorite list',
-  })
-  @ApiParam({
-    name: 'favoriteListId',
-    description: 'Favorite list ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
-  })
-  @ApiParam({
-    name: 'productId',
-    description: 'Product ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
   })
   @Post(':favoriteListId/products/:productId')
   @UseGuards(ClientAuthGuard)
@@ -180,12 +149,6 @@ export class FavoriteListsController {
   @ApiOperation({ summary: 'Remove a product from a favorite list' })
   @ApiOkResponse({ description: 'Product removed successfully' })
   @ApiNotFoundResponse({ description: 'Favorite list product not found' })
-  @ApiParam({
-    name: 'favoriteListId',
-    description: 'Favorite list product ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
-  })
   @Delete('/product/:favoriteListId')
   @UseGuards(ClientAuthGuard)
   removeProductFromFavoriteList(
@@ -203,12 +166,6 @@ export class FavoriteListsController {
     type: FavoriteListProductsEntity,
   })
   @ApiNotFoundResponse({ description: 'Favorite list product not found' })
-  @ApiParam({
-    name: 'favoriteListId',
-    description: 'Favorite list product ID',
-    type: String,
-    example: '12345678-1234-1234-1234-123456789abc',
-  })
   @Patch('/product/:favoriteListId')
   @UseGuards(ClientAuthGuard)
   updateFavoriteListProduct(

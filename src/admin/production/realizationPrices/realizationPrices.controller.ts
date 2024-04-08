@@ -18,8 +18,8 @@ import {
   ApiBearerAuth,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { RealizationPriceEntity } from './entities/realizationPrices.entity';
 
@@ -31,7 +31,7 @@ export class RealizationPricesController {
     private readonly realizationPricesService: RealizationPricesService,
   ) {}
 
-  @ApiParam({ name: 'id', type: 'string', description: 'Product id' })
+  @ApiOperation({ summary: 'Create a new realization price' })
   @ApiOkResponse({
     type: RealizationPriceEntity,
     description: 'Realization price created successfully',
@@ -40,14 +40,15 @@ export class RealizationPricesController {
     type: NotFoundException,
     description: 'Product not found',
   })
-  @Post(':id')
+  @Post(':productId')
   createPrice(
     @Body() dto: CreateRealizationPriceDto,
-    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
   ) {
     return this.realizationPricesService.createRealizationPrice(dto, productId);
   }
 
+  @ApiOperation({ summary: 'Get prices of a product' })
   @ApiOkResponse({
     type: [RealizationPriceEntity],
     description: 'Product prices retrieved successfully',
@@ -56,14 +57,15 @@ export class RealizationPricesController {
     type: NotFoundException,
     description: 'Product not found',
   })
-  @Get(':id')
+  @Get(':productId')
   getPrices(
-    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('productId', ParseUUIDPipe) productId: string,
     @Query() query: GetPricesDto,
   ) {
     return this.realizationPricesService.getPrices(productId, query);
   }
 
+  @ApiOperation({ summary: 'Update a product price' })
   @ApiOkResponse({
     type: RealizationPriceEntity,
     description: 'Product price updated successfully',
@@ -72,14 +74,15 @@ export class RealizationPricesController {
     type: NotFoundException,
     description: 'Price not found',
   })
-  @Patch(':id')
+  @Patch(':priceId')
   updatePrice(
-    @Param('id', ParseUUIDPipe) priceId: string,
+    @Param('priceId', ParseUUIDPipe) priceId: string,
     @Body() dto: UpdateRealizationPriceDto,
   ) {
     return this.realizationPricesService.updateRealizationPrice(priceId, dto);
   }
 
+  @ApiOperation({ summary: 'Delete a product price' })
   @ApiNotFoundResponse({
     type: NotFoundException,
     description: 'Price not found',
@@ -92,8 +95,8 @@ export class RealizationPricesController {
       },
     },
   })
-  @Delete(':id')
-  deletePrice(@Param('id', ParseUUIDPipe) priceId: string) {
+  @Delete(':priceId')
+  deletePrice(@Param('priceId', ParseUUIDPipe) priceId: string) {
     return this.realizationPricesService.deleteRealizationPrice(priceId);
   }
 }

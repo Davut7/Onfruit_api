@@ -5,6 +5,7 @@ import {
   ApiTags,
   ApiOkResponse,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { OrderEntity } from 'src/client/order/entities/order.entity';
 
@@ -14,6 +15,7 @@ import { OrderEntity } from 'src/client/order/entities/order.entity';
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
+  @ApiOperation({ summary: 'Get completed orders and their count' })
   @ApiOkResponse({
     description: 'Returns completed orders and their count.',
     schema: {
@@ -32,6 +34,7 @@ export class AnalyticsController {
     return this.analyticsService.getCompletedOrdersAndCount();
   }
 
+  @ApiOperation({ summary: 'Get registered users' })
   @ApiOkResponse({
     description: 'Returns registered users.',
     schema: {
@@ -49,6 +52,7 @@ export class AnalyticsController {
     return this.analyticsService.getRegisteredUsers();
   }
 
+  @ApiOperation({ summary: 'Get registered users today' })
   @ApiOkResponse({
     description: 'Returns registered users today.',
     schema: {
@@ -63,6 +67,7 @@ export class AnalyticsController {
     return this.analyticsService.getRegisteredUsersToday();
   }
 
+  @ApiOperation({ summary: 'Get sold products weight' })
   @ApiOkResponse({
     description: 'Returns sold products weight.',
     schema: {
@@ -79,12 +84,14 @@ export class AnalyticsController {
     return this.analyticsService.getSoldProductsWeight();
   }
 
+  @ApiOperation({ summary: 'Get recent orders' })
   @ApiOkResponse({ description: 'Returns recent orders.', type: [OrderEntity] })
   @Get('recent-orders')
   async getRecentOrders() {
     return this.analyticsService.getRecentOrders();
   }
 
+  @ApiOperation({ summary: 'Get top sold products' })
   @ApiOkResponse({
     description: 'Returns top sold products.',
     type: [OrderEntity],
@@ -94,6 +101,7 @@ export class AnalyticsController {
     return this.analyticsService.getTopSoldProducts();
   }
 
+  @ApiOperation({ summary: 'Get top not sold products' })
   @ApiOkResponse({
     description: 'Returns top not sold products.',
     type: [OrderEntity],
@@ -103,6 +111,7 @@ export class AnalyticsController {
     return this.analyticsService.getTopNotSoldProducts();
   }
 
+  @ApiOperation({ summary: 'Get monthly orders' })
   @ApiOkResponse({
     description: 'Returns monthly orders.',
     schema: {

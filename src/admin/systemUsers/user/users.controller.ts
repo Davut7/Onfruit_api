@@ -28,10 +28,10 @@ import {
   ApiConflictResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
   getSchemaPath,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { SubjectEntity } from './entities/adminSubjects.entity';
 import { ActionEntity } from './entities/adminActions.entity';
@@ -42,6 +42,7 @@ import { ActionEntity } from './entities/adminActions.entity';
 export class AdminUsersController {
   constructor(private readonly adminUsersService: AdminUsersService) {}
 
+  @ApiOperation({ summary: 'Get all admin users' })
   @ApiOkResponse({
     type: [AdminsEntity],
     description: 'Return all admin users',
@@ -56,6 +57,7 @@ export class AdminUsersController {
     return this.adminUsersService.getUsers();
   }
 
+  @ApiOperation({ summary: 'Get current user' })
   @ApiOkResponse({ description: 'Return current user', type: AdminsEntity })
   @ApiUnauthorizedResponse({
     type: UnauthorizedException,
@@ -67,7 +69,7 @@ export class AdminUsersController {
     return this.adminUsersService.getMe(currentUser.id);
   }
 
-  @ApiParam({ name: 'id', type: 'string', description: 'System user id' })
+  @ApiOperation({ summary: 'Get user by ID' })
   @ApiOkResponse({
     type: AdminsEntity,
     description: 'System user returned by id',
@@ -76,17 +78,17 @@ export class AdminUsersController {
     type: NotFoundException,
     description: 'System user not found',
   })
-  @Get(':id')
+  @Get(':adminId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.AdminUsers,
   })
-  getOneUser(@Param('id', ParseUUIDPipe) id: string) {
-    return this.adminUsersService.getOneUser(id);
+  getOneUser(@Param('adminId', ParseUUIDPipe) adminId: string) {
+    return this.adminUsersService.getOneUser(adminId);
   }
 
-  @ApiParam({ name: 'id', type: 'string', description: 'System user id' })
+  @ApiOperation({ summary: 'Update user by ID' })
   @ApiOkResponse({
     type: AdminsEntity,
     description: 'System user updated by id',
@@ -95,20 +97,20 @@ export class AdminUsersController {
     type: NotFoundException,
     description: 'System user not found',
   })
-  @Patch(':id')
+  @Patch(':adminId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.AdminUsers,
   })
   updateUser(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('adminId', ParseUUIDPipe) adminId: string,
     @Body() dto: AdminUsersUpdateDto,
   ) {
-    return this.adminUsersService.updateUser(id, dto);
+    return this.adminUsersService.updateUser(adminId, dto);
   }
 
-  @ApiParam({ name: 'id', type: 'string', description: 'System user id' })
+  @ApiOperation({ summary: 'Delete user by ID' })
   @ApiOkResponse({
     description: 'System user deleted by id',
     schema: {
@@ -125,17 +127,17 @@ export class AdminUsersController {
     type: NotFoundException,
     description: 'System user not found',
   })
-  @Delete(':id')
+  @Delete(':adminId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.AdminUsers,
   })
-  deleteUser(@Param('id', ParseUUIDPipe) id: string) {
-    return this.adminUsersService.deleteUser(id);
+  deleteUser(@Param('adminId', ParseUUIDPipe) adminId: string) {
+    return this.adminUsersService.deleteUser(adminId);
   }
 
-  @ApiParam({ type: 'string', name: 'id', description: 'System user id' })
+  @ApiOperation({ summary: 'Create subject for user' })
   @ApiConflictResponse({
     type: ConflictException,
     description: 'User with id already have subject ${dto.subject}',
@@ -154,25 +156,20 @@ export class AdminUsersController {
       },
     },
   })
-  @Post('/subject/:id')
+  @Post('/subject/:adminId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
     subject: SubjectEnum.AdminUsers,
   })
   createSubject(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('adminId', ParseUUIDPipe) adminId: string,
     @Body() dto: CreateSubjectDto,
   ) {
-    dto.adminId = id;
-    return this.adminUsersService.createSubject(dto);
+    return this.adminUsersService.createSubject(dto, adminId);
   }
 
-  @ApiParam({
-    type: 'string',
-    name: 'id',
-    description: 'System users subject id',
-  })
+  @ApiOperation({ summary: 'Delete subject by ID' })
   @ApiOkResponse({
     schema: {
       type: 'object',
@@ -185,21 +182,17 @@ export class AdminUsersController {
     type: NotFoundException,
     description: 'Subject not found',
   })
-  @Delete('/subject/:id')
+  @Delete('/subject/:subjectId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.AdminUsers,
   })
-  deleteSubject(@Param('id', ParseUUIDPipe) id: string) {
-    return this.adminUsersService.deleteSubject(id);
+  deleteSubject(@Param('subjectId', ParseUUIDPipe) subjectId: string) {
+    return this.adminUsersService.deleteSubject(subjectId);
   }
 
-  @ApiParam({
-    name: 'id',
-    type: 'string',
-    description: 'System users subject id',
-  })
+  @ApiOperation({ summary: 'Create action for subject' })
   @ApiConflictResponse({
     type: ConflictException,
     description: 'System users already has subject with this action ',
@@ -208,25 +201,20 @@ export class AdminUsersController {
     type: ActionEntity,
     description: 'Subject action created successfully',
   })
-  @Post('/action/:id')
+  @Post('/action/:subjectId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.AdminUsers,
   })
   createAction(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('subjectId', ParseUUIDPipe) subjectId: string,
     @Body() dto: CreateActionDto,
   ) {
-    dto.subjectId = id;
-    return this.adminUsersService.createAction(dto);
+    return this.adminUsersService.createAction(dto, subjectId);
   }
 
-  @ApiParam({
-    type: 'string',
-    name: 'id',
-    description: 'System users subjects action id',
-  })
+  @ApiOperation({ summary: 'Delete action by ID' })
   @ApiOkResponse({
     schema: {
       type: 'object',
@@ -243,13 +231,13 @@ export class AdminUsersController {
     type: ConflictException,
     description: 'Read action cannot be deleted',
   })
-  @Delete('/action/:id')
+  @Delete('/action/:actionId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.AdminUsers,
   })
-  deleteAction(@Param('id', ParseUUIDPipe) id: string) {
-    return this.adminUsersService.deleteAction(id);
+  deleteAction(@Param('actionId', ParseUUIDPipe) actionId: string) {
+    return this.adminUsersService.deleteAction(actionId);
   }
 }

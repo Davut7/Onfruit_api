@@ -37,7 +37,6 @@ import {
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
-  ApiParam,
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
@@ -51,7 +50,6 @@ import { ProductEntity } from '../product/entities/product.entity';
 export class SubcategoryController {
   constructor(private readonly subcategoryService: SubcategoryService) {}
 
-  @ApiParam({ name: 'id', type: 'string', description: 'Category id' })
   @ApiCreatedResponse({
     description: 'Subcategory created successfully',
     schema: {
@@ -69,7 +67,7 @@ export class SubcategoryController {
     type: NotFoundException,
     description: 'Category not found',
   })
-  @Post(':id')
+  @Post(':categoryId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
@@ -77,7 +75,7 @@ export class SubcategoryController {
   })
   async createSubcategory(
     @Body() dto: CreateSubcategoryDto,
-    @Param('id', ParseUUIDPipe) categoryId: string,
+    @Param('categoryId', ParseUUIDPipe) categoryId: string,
   ) {
     return this.subcategoryService.createSubcategory(dto, categoryId);
   }
@@ -110,7 +108,7 @@ export class SubcategoryController {
     description: 'Image must be provided',
   })
   @ApiConsumes('multipart/form-data')
-  @Post(':id/image')
+  @Post(':subcategoryId/image')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
@@ -134,13 +132,12 @@ export class SubcategoryController {
   )
   async createSubcategoryImage(
     @UploadedFile() image: Express.Multer.File,
-    @Param('id', ParseUUIDPipe) subcategoryId: string,
+    @Param('subcategoryId', ParseUUIDPipe) subcategoryId: string,
   ) {
     if (!image) throw new BadRequestException('Please provide an image');
     return this.subcategoryService.createSubcategoryImage(subcategoryId, image);
   }
 
-  @ApiParam({ name: 'id', type: 'string', description: 'Media id to delete' })
   @ApiOkResponse({
     description: 'Subcategory media deleted successfully',
     schema: {
@@ -157,8 +154,10 @@ export class SubcategoryController {
     type: NotFoundException,
     description: 'Media not found',
   })
-  @Delete(':id/image')
-  async deleteSubcategoryImage(@Param('id', ParseUUIDPipe) mediaId: string) {
+  @Delete(':mediaId/image')
+  async deleteSubcategoryImage(
+    @Param('mediaId', ParseUUIDPipe) mediaId: string,
+  ) {
     return await this.subcategoryService.deleteSubcategoryImage(mediaId);
   }
 
@@ -185,12 +184,6 @@ export class SubcategoryController {
     return await this.subcategoryService.getSubcategories(query);
   }
 
-  @ApiParam({
-    name: 'id',
-    description: 'Subcategory id',
-    type: 'string',
-    required: true,
-  })
   @ApiOkResponse({
     description: 'Subcategory returned by id',
     schema: {
@@ -209,14 +202,14 @@ export class SubcategoryController {
     type: NotFoundException,
     description: 'Subcategory not found',
   })
-  @Get(':id')
+  @Get(':subcategoryId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
   })
   async getOneSubcategory(
-    @Param('id', ParseUUIDPipe) subcategoryId: string,
+    @Param('subcategoryId', ParseUUIDPipe) subcategoryId: string,
     @Query() query: GetOneSubcategory,
   ) {
     return await this.subcategoryService.getOneSubcategory(
@@ -225,12 +218,6 @@ export class SubcategoryController {
     );
   }
 
-  @ApiParam({
-    name: 'id',
-    description: 'Subcategory id',
-    type: 'string',
-    required: true,
-  })
   @ApiOkResponse({
     description: 'Subcategory updated by id',
     schema: {
@@ -248,25 +235,19 @@ export class SubcategoryController {
     type: NotFoundException,
     description: 'Subcategory not found',
   })
-  @Patch(':id')
+  @Patch(':subcategoryId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Update,
     subject: SubjectEnum.Products,
   })
   async updateSubcategory(
-    @Param('id', ParseUUIDPipe) subcategoryId: string,
+    @Param('subcategoryId', ParseUUIDPipe) subcategoryId: string,
     @Body() dto: UpdateSubcategoryDto,
   ) {
     return await this.subcategoryService.updateSubcategory(subcategoryId, dto);
   }
 
-  @ApiParam({
-    name: 'id',
-    description: 'Subcategory id',
-    type: 'string',
-    required: true,
-  })
   @ApiOkResponse({
     description: 'Subcategory deleted by id',
     schema: {
@@ -288,13 +269,15 @@ export class SubcategoryController {
     type: ForbiddenException,
     description: 'Category relations not deleted',
   })
-  @Delete(':id')
+  @Delete(':subcategoryId')
   @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Delete,
     subject: SubjectEnum.Products,
   })
-  async deleteSubcategory(@Param('id', ParseUUIDPipe) subcategoryId: string) {
+  async deleteSubcategory(
+    @Param('subcategoryId', ParseUUIDPipe) subcategoryId: string,
+  ) {
     return await this.subcategoryService.deleteSubcategory(subcategoryId);
   }
 }
