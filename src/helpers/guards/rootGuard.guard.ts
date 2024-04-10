@@ -7,13 +7,13 @@ import {
 } from '@nestjs/common';
 import { AdminTokenDto } from 'src/admin/systemUsers/token/dto/adminToken.dto';
 import { AdminTokenService } from 'src/admin/systemUsers/token/token.service';
-import { AdminUsersService } from 'src/admin/systemUsers/user/users.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class RootGuard implements CanActivate {
   constructor(
     private adminTokenService: AdminTokenService,
-    private adminUserService: AdminUsersService,
+    private redisService: RedisService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -33,11 +33,14 @@ export class RootGuard implements CanActivate {
         token,
       ) as AdminTokenDto;
 
-      const user = await this.adminUserService.getMe(userToken.id);
-      if (user.role !== 'root') {
+      const isInBlackList = await this.redisService.getAccessToken(token);
+      if (isInBlackList) {
+        throw new UnauthorizedException({ message: 'User not authorized' });
+      }
+      if (userToken.role !== 'root') {
         throw new ForbiddenException();
       }
-      req.currentUser = user;
+      req.currentUser = userToken;
       return true;
     } catch (e) {
       throw new UnauthorizedException({ message: 'User not authorized' });

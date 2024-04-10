@@ -29,11 +29,16 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UserEntity } from '../users/entities/user.entity';
+import { RedisService } from 'src/redis/redis.service';
+import { ClientAuthGuard } from 'src/helpers/guards/clientAuthGuard.guard';
 
 @ApiTags('client-auth')
 @Controller('client/auth')
 export class ClientAuthController {
-  constructor(private authService: ClientAuthService) {}
+  constructor(
+    private authService: ClientAuthService,
+    private redisService: RedisService,
+  ) {}
 
   @ApiOperation({ summary: 'User registration' })
   @ApiConflictResponse({
@@ -152,9 +157,13 @@ export class ClientAuthController {
   @ApiUnauthorizedResponse({
     description: 'User unauthorized',
   })
+  @UseGuards(ClientAuthGuard)
   @Post('logout')
   async userLogout(@Req() req, @Res() res) {
     const refreshToken = req.cookies['refreshToken'];
+    const authHeader = req.headers.authorization;
+    const token = authHeader.split(' ')[1];
+    await this.redisService.setTokenWithExpiry(token, token);
     this.authService.userLogout(refreshToken);
     res.clearCookie('refreshToken');
     res.status(200).json({

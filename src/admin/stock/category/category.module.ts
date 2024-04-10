@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ImageTransformer } from 'src/helpers/pipes/image.transform';
 import { AbilityControlModule } from 'src/admin/abilityControl/abilityControl.module';
 import { MediaModule } from 'src/media/media.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { MediaModule } from 'src/media/media.module';
     forwardRef(() => SubcategoryModule),
     AbilityControlModule,
     MediaModule,
+    RedisModule,
   ],
   controllers: [CategoryController],
   providers: [CategoryService, ImageTransformer],

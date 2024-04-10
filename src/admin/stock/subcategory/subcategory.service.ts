@@ -2,12 +2,12 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  forwardRef,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  forwardRef,
 } from '@nestjs/common';
 import { SubcategoryEntity } from './entities/subcategory.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,6 +19,7 @@ import { GetSubcategoriesDto } from './dto/getSubcategories';
 import { GetOneSubcategory } from './dto/getOneSubcategory';
 import { UpdateSubcategoryDto } from './dto/updateSubcategory.dto';
 import { MediaService } from 'src/media/media.service';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class SubcategoryService {
@@ -239,7 +240,13 @@ export class SubcategoryService {
     subcategoryId: string,
     image: Express.Multer.File,
   ) {
-    await this.getSubcategoryById(subcategoryId);
+    const subcategory = await this.subcategoryRepository.findOne({
+      where: { id: subcategoryId },
+    });
+    if (!subcategory) {
+      await unlink(image.path);
+      throw new NotFoundException('Subcategory not found');
+    }
     const media = await this.mediaService.createMedia(
       image,
       subcategoryId,

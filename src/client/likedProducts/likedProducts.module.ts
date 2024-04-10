@@ -7,6 +7,7 @@ import { ClientProductModule } from '../product/product/clientProduct.module';
 import { TokenModule } from '../user/token/userToken.module';
 import { LikedProductsController } from './likedProducts.controller';
 import { LikedProductsService } from './likedProducts.service';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { LikedProductsService } from './likedProducts.service';
     TokenModule,
     ClientProductModule,
     UserModule,
+    RedisModule,
   ],
   controllers: [LikedProductsController],
   providers: [LikedProductsService],

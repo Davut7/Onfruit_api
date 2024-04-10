@@ -8,6 +8,7 @@ import { ImageTransformer } from 'src/helpers/pipes/image.transform';
 import { UserTokenEntity } from '../token/entities/userToken.entity';
 import { TokenModule } from '../token/userToken.module';
 import { MediaModule } from 'src/media/media.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MediaModule } from 'src/media/media.module';
     ]),
     TokenModule,
     MediaModule,
+    RedisModule,
   ],
   providers: [UserService, ImageTransformer],
   controllers: [UserController],

@@ -5,16 +5,16 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { UserService } from '../../client/user/users/user.service';
 import { ROLES_KEY } from 'src/helpers/common/decorators/requiredRoles.decorator';
 import { UserTokenService } from '../../client/user/token/userToken.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(
     private tokenService: UserTokenService,
     private reflector: Reflector,
-    private userService: UserService,
+    private redisService: RedisService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -37,13 +37,16 @@ export class RolesGuard implements CanActivate {
 
     const userToken = this.tokenService.validateAccessToken(token);
 
-    const user = await this.userService.getMe(token);
-
-    if (!userToken || !user) {
+    const isInBlackList = await this.redisService.getAccessToken(token);
+    if (isInBlackList) {
       throw new UnauthorizedException({ message: 'User not authorized' });
     }
 
-    req.currentUser = user;
+    if (!userToken) {
+      throw new UnauthorizedException({ message: 'User not authorized' });
+    }
+
+    req.currentUser = userToken;
     return true;
   }
 }

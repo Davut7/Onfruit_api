@@ -1,8 +1,8 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,6 +14,8 @@ import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
 
 @Injectable()
 export class UserBasketService {
+  private readonly logger = new Logger(UserBasketService.name);
+
   constructor(
     @InjectRepository(BasketEntity)
     private basketRepository: Repository<BasketEntity>,
@@ -27,15 +29,22 @@ export class UserBasketService {
       .leftJoinAndSelect('product.prices', 'price')
       .where('product.id = :productId', { productId })
       .getOne();
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) {
+      this.logger.error('Product not found');
+      throw new NotFoundException('Product not found');
+    }
 
     const candidate = await this.basketRepository.findOne({
       where: { productId: productId, userId: userId },
     });
-    if (candidate)
+    if (candidate) {
+      this.logger.error(
+        `Product with id ${productId} already exists in basket!`,
+      );
       throw new ConflictException(
         `Product with id ${productId} already exists in basket!`,
       );
+    }
 
     const maxPrice = product.prices
       .map((price) => price.price)
@@ -49,6 +58,7 @@ export class UserBasketService {
       productSum: maxPrice,
     });
     await this.basketRepository.save(basketProduct);
+    this.logger.log('Product added to basket successfully');
     return {
       basketProduct: basketProduct,
       message: 'Product added to basket successfully!',
@@ -98,7 +108,7 @@ export class UserBasketService {
     }
 
     const [basketProducts, count] = await basketProductQuery.getManyAndCount();
-
+    this.logger.log('Basket products retrieved successfully');
     return {
       basketProducts: basketProducts,
       basketProductCount: count,
@@ -108,15 +118,18 @@ export class UserBasketService {
 
   async removeProductFromBasket(userId: string, basketProductId: string) {
     const candidate = await this.getOneBasketProduct(basketProductId, userId);
-    if (!candidate)
+    if (!candidate) {
+      this.logger.error(`Basket item with id ${basketProductId} not found!`);
       throw new NotFoundException(
         `Basket item with id ${basketProductId} not found!`,
       );
+    }
 
     await this.basketRepository.delete({
       id: basketProductId,
       userId: userId,
     });
+    this.logger.log('Basket item deleted successfully');
     return {
       message: 'Basket item deleted successfully!',
     };
@@ -126,8 +139,10 @@ export class UserBasketService {
     const basketProduct = await this.basketRepository.findOne({
       where: { userId: userId, id: basketProductId },
     });
-    if (!basketProduct)
+    if (!basketProduct) {
+      this.logger.error('Basket product not found!');
       throw new NotFoundException('Basket product not found!');
+    }
     return basketProduct;
   }
 
@@ -162,33 +177,47 @@ export class UserBasketService {
       productInBasket.productQuantity += dto.quantityUpdate;
       productInBasket.productSum =
         productInBasket.productQuantity * selectedPrice;
-      if (productInBasket.productQuantity <= 0)
+      if (productInBasket.productQuantity <= 0) {
+        this.logger.error('Quantity cannot be less than 1.');
         throw new ConflictException('Quantity cannot be less than 1.');
-      if (productInBasket.productQuantity >= product.currentSaleQuantity)
-        throw new ConflictException(
-          'Cannot add quantity more than current sale quantity ',
+      }
+      if (productInBasket.productQuantity >= product.currentSaleQuantity) {
+        this.logger.error(
+          'Cannot add quantity more than current sale quantity',
         );
+        throw new ConflictException(
+          'Cannot add quantity more than current sale quantity',
+        );
+      }
       await this.basketRepository.save(productInBasket);
 
+      this.logger.log('Basket product data updated successfully');
       return {
         product: productInBasket,
         message: 'Basket product data updated successfully!',
       };
     }
 
-    if (productInBasket.productQuantity <= 0)
+    if (productInBasket.productQuantity <= 0) {
+      this.logger.error('Quantity cannot be less than 1.');
       throw new ConflictException('Quantity cannot be less than 1.');
+    }
 
-    if (productInBasket.productQuantity >= product.currentSaleQuantity)
+    if (productInBasket.productQuantity >= product.currentSaleQuantity) {
+      this.logger.error(
+        `Cannot add quantity more than current sale quantity ${product.currentSaleQuantity}`,
+      );
       throw new ConflictException(
         `Cannot add quantity more than current sale quantity ${product.currentSaleQuantity}`,
       );
+    }
     productInBasket.productPrice = selectedPrice.price;
     productInBasket.productQuantity += dto.quantityUpdate;
     productInBasket.productSum =
       productInBasket.productQuantity * selectedPrice.price;
     await this.basketRepository.save(productInBasket);
 
+    this.logger.log('Basket product data updated successfully');
     return {
       basketProduct: productInBasket,
       message: 'Basket product data updated successfully!',
@@ -230,6 +259,7 @@ export class UserBasketService {
         { userId: user.id, userType: user.role },
       )
       .getMany();
+    this.logger.log('User basket products retrieved successfully');
     return basketProducts;
   }
 }

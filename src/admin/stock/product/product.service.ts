@@ -25,6 +25,7 @@ import { CreateProductDto } from './dto/createProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 import { MediaService } from 'src/media/media.service';
 import { GetOneSubcategory } from '../subcategory/dto/getOneSubcategory';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class ProductService {
@@ -41,10 +42,14 @@ export class ProductService {
   ) {}
 
   async createProduct(dto: CreateProductDto) {
+    this.logger.log(`Creating product! \n ${JSON.stringify(dto, null, 2)}`);
     await this.isProductUnique(dto.article, dto.barcode);
     await this.subcategoryService.getSubcategoryById(dto.subcategoryId);
     const product = this.productRepository.create(dto);
     await this.productRepository.save(product);
+    this.logger.log(
+      `Product created successfully! \n ${JSON.stringify(product, null, 2)}`,
+    );
     return {
       id: product.id,
       article: product.article,
@@ -55,6 +60,7 @@ export class ProductService {
   }
 
   async getProducts(query?: GetProductsDto) {
+    this.logger.log(`Getting products`);
     const {
       page = 1,
       take = 10,
@@ -97,10 +103,12 @@ export class ProductService {
 
     const productsCount = await this.productRepository.count();
 
+    this.logger.log('Returned products');
     return { products, productsCount };
   }
 
   async getOneProduct(productId: string) {
+    this.logger.log(`Getting one product with ID ${productId}`);
     const product = await this.productRepository
       .createQueryBuilder('products')
       .leftJoinAndSelect('products.productAttributes', 'productAttributes')
@@ -131,10 +139,13 @@ export class ProductService {
         'prices.userType',
       ])
       .getOne();
-    if (!product)
+    if (!product) {
+      this.logger.error(`Product with ID ${productId} not found`);
       throw new NotFoundException(
         `Product with id ${productId} does not exist!`,
       );
+    }
+    this.logger.log(`Returned one product with ID ${productId}`);
     return {
       product,
       message: `Product with id ${productId} returned successfully!`,
@@ -142,11 +153,17 @@ export class ProductService {
   }
 
   async updateProduct(productId: string, dto: UpdateProductDto) {
+    this.logger.log(`Updating product with ID ${productId}`);
     const product = await this.productRepository.findOne({
       where: { id: productId },
     });
+    if (!product) {
+      this.logger.error(`Product with ID ${productId} not found`);
+      throw new NotFoundException(`Product with id ${productId} not found`);
+    }
     product.barcode = dto.barcode;
     await this.productRepository.save(product);
+    this.logger.log(`Product with ID ${productId} was successfully updated`);
     return {
       product: product,
       message: `Product with id ${productId} was successfully updated`,
@@ -154,14 +171,17 @@ export class ProductService {
   }
 
   async deleteProduct(productId: string) {
+    this.logger.log(`Deleting product with ID ${productId}`);
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     let mediaIds = [];
     try {
       const product = await this.getProductById(productId);
-      if (!product)
-        throw new NotFoundException(`Product with id ${productId} not found!`);
+      if (!product) {
+        this.logger.error(`Product with ID ${productId} not found`);
+        throw new NotFoundException(`Product with id ${productId} not found`);
+      }
       for (const media of product.medias) {
         mediaIds.push(media.id);
       }
@@ -169,16 +189,17 @@ export class ProductService {
       await queryRunner.manager.delete(ProductEntity, { id: productId });
       return { message: 'Product deleted successfully!' };
     } catch (err) {
-      this.logger.error('Category not deleted server error!');
+      this.logger.error('Product not deleted server error!');
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException(err);
     } finally {
       await queryRunner.release();
-      this.logger.log('Category deleted successfully!');
+      this.logger.log('Product deleted successfully!');
     }
   }
 
   async getProductByArticle(search: string) {
+    this.logger.log(`Getting product by article ${search}`);
     const product = await this.productRepository
       .createQueryBuilder('products')
       .leftJoin('products.productAttributes', 'productAttributes')
@@ -200,6 +221,7 @@ export class ProductService {
       ])
       .groupBy('products.id, products.article, title')
       .getRawMany();
+    this.logger.log(`Product with article ${search} returned successfully`);
     return {
       product,
       message: `Product with article ${search} returned successfully!`,
@@ -207,35 +229,51 @@ export class ProductService {
   }
 
   async isProductUnique(article: string, barcode: string) {
+    this.logger.log(
+      `Checking product uniqueness for article ${article} and barcode ${barcode}`,
+    );
     const productArticle = await this.productRepository.findOne({
       where: { article: article },
     });
-    if (productArticle)
+    if (productArticle) {
+      this.logger.error(
+        `Product with article ${productArticle.article} already exists!`,
+      );
       throw new ConflictException(
         `Product with article ${productArticle.article} already exists!`,
       );
+    }
     const productBarcode = await this.productRepository.findOne({
       where: { barcode: barcode },
     });
-    if (productBarcode)
+    if (productBarcode) {
+      this.logger.error(
+        `Product with barcode ${productBarcode.barcode} already exists!`,
+      );
       throw new ConflictException(
         `Product with barcode ${productBarcode.barcode} already exists!`,
       );
+    }
   }
 
   async getProductById(productId: string) {
+    this.logger.log(`Getting product by ID ${productId}`);
     const product = await this.productRepository
       .createQueryBuilder('products')
       .leftJoinAndSelect('products.productAttributes', 'productAttributes')
       .leftJoinAndSelect('products.medias', 'medias')
       .where('products.id = :productId', { productId })
       .getOne();
-    if (!product)
-      throw new NotFoundException(`Product with id ${productId} not found!`);
+    if (!product) {
+      this.logger.error(`Product with ID ${productId} not found`);
+      throw new NotFoundException(`Product with id ${productId} not found`);
+    }
+    this.logger.log(`Product with ID ${productId} returned successfully`);
     return product;
   }
 
   async getBySubcategoryId(subcategoryId: string, query: GetOneSubcategory) {
+    this.logger.log(`Getting products by subcategory ID ${subcategoryId}`);
     const {
       page = 1,
       take = 10,
@@ -290,6 +328,9 @@ export class ProductService {
 
     const products = await productQuery.getRawMany();
 
+    this.logger.log(
+      `Products by subcategory ID ${subcategoryId} returned successfully`,
+    );
     return { products };
   }
 
@@ -297,10 +338,12 @@ export class ProductService {
     product: ProductEntity,
     dto: CreateRealizationDto,
   ) {
+    this.logger.log(`Checking stock for product ${product.id}`);
     if (
       product.currentQuantity < dto.quantity ||
       product.currentSum < dto.sum
     ) {
+      this.logger.error(`Product ${product.id} has insufficient stock!`);
       throw new BadRequestException(
         `Product have quantity ${product.currentQuantity} and sum ${product.currentSum}!. You provided more than in stock!`,
       );
@@ -308,6 +351,7 @@ export class ProductService {
   }
 
   async getCountries(query: GetManufacturerCountries) {
+    this.logger.log(`Getting manufacturer countries`);
     const { search = '', lng = 'ru' } = query;
     const countries = await this.manufacturerCountriesRepository
       .createQueryBuilder('countries')
@@ -315,16 +359,26 @@ export class ProductService {
       .where(`countries.${lng}Country ILIKE :search`, { search: `%${search}%` })
       .getMany();
 
+    this.logger.log(`Manufacturer countries returned successfully`);
     return countries;
   }
 
   async createProductImage(productId: string, image: Express.Multer.File) {
-    await this.getProductById(productId);
+    this.logger.log(`Creating image for product ${productId}`);
+    const product = await this.productRepository.findOne({
+      where: { id: productId },
+    });
+    if (!product) {
+      await unlink(image.path);
+      this.logger.error(`Product with ID ${productId} not found`);
+      throw new NotFoundException('Product not found');
+    }
     const media = await this.mediaService.createMedia(
       image,
       productId,
       'productId',
     );
+    this.logger.log(`Image created successfully for product ${productId}`);
     return {
       message: 'Product image uploaded successfully',
       media: media,
@@ -332,7 +386,9 @@ export class ProductService {
   }
 
   async deleteProductImage(mediaId: string) {
+    this.logger.log(`Deleting image with ID ${mediaId}`);
     await this.mediaService.deleteOneMedia(mediaId);
+    this.logger.log(`Image with ID ${mediaId} deleted successfully`);
     return {
       message: 'Product image deleted successfully!',
     };

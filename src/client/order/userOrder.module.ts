@@ -7,14 +7,14 @@ import { OrderProductsEntity } from './entities/orderProducts.entity';
 import { UserBasketModule } from '../basket/basket.module';
 import { TokenModule } from '../user/token/userToken.module';
 import { UserModule } from '../user/users/user.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature(
-      [OrderEntity, OrderProductsEntity],
-      ),
-      TokenModule,
-      UserModule,
+    TypeOrmModule.forFeature([OrderEntity, OrderProductsEntity]),
+    TokenModule,
+    UserModule,
+    RedisModule,
     UserBasketModule,
   ],
   controllers: [UserOrderController],

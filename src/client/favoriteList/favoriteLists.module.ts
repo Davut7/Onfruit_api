@@ -9,6 +9,7 @@ import { ClientProductModule } from '../product/product/clientProduct.module';
 import { FavoriteListsController } from './favoriteLists.controller';
 import { FavoriteListsService } from './favoriteLists.service';
 import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
       UserEntity,
       ProductEntity,
     ]),
+    RedisModule,
     TokenModule,
     UserModule,
     ClientProductModule,

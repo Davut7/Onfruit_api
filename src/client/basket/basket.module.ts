@@ -7,6 +7,7 @@ import { ClientProductModule } from '../product/product/clientProduct.module';
 import { TokenModule } from '../user/token/userToken.module';
 import { BasketEntity } from './entities/basket.entity';
 import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
     ClientProductModule,
     TokenModule,
     UserModule,
+    RedisModule,
   ],
   controllers: [UserBasketController],
   providers: [UserBasketService],

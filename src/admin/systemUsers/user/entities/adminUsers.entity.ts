@@ -43,21 +43,6 @@ export class AdminsEntity extends BaseEntity {
   password: string;
 
   @ApiProperty({
-    title: 'Confirm Password',
-    name: 'confirmPassword',
-    description: 'The confirmed password of the admin user',
-    type: String,
-  })
-  @IsString()
-  @IsNotEmpty()
-  @Matches(/^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/, {
-    message:
-      'Password must be at least 8 characters long and contain at least one lowercase letter, one uppercase letter, one number, and one special character.',
-  })
-  @Column({ type: 'varchar', nullable: false, select: false })
-  confirmPassword: string;
-
-  @ApiProperty({
     title: 'Role',
     name: 'role',
     description: 'The role of the admin user',
@@ -79,10 +64,8 @@ export class AdminsEntity extends BaseEntity {
   @Column({ type: 'boolean', nullable: false, default: false })
   isActive: boolean;
 
-
   @OneToOne(() => AdminTokenEntity, (token) => token.user)
   token: AdminTokenEntity;
-
 
   @OneToMany(() => SubjectEntity, (subjects) => subjects.admin)
   subjects: SubjectEntity[];

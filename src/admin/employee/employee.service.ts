@@ -1,7 +1,6 @@
 import {
   ConflictException,
   Injectable,
-  InternalServerErrorException,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
@@ -19,10 +18,12 @@ import { MonthlyRecordDetailEntity } from './entities/monthlyRecordDetails.entit
 import { CreatePenaltyDto } from './dto/createPenalty.dto';
 import { CreatePrepaymentDto } from './dto/createPrepayment.dto';
 import { MediaService } from 'src/media/media.service';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class EmployeeService {
   private readonly logger = new Logger(EmployeeService.name);
+
   constructor(
     @InjectRepository(EmployeeEntity)
     private employeeRepository: Repository<EmployeeEntity>,
@@ -31,17 +32,26 @@ export class EmployeeService {
     private dataSource: DataSource,
     private mediaService: MediaService,
   ) {}
+
   async createEmployee(dto: CreateEmployeeDto) {
     const candidate = await this.employeeRepository.findOne({
       where: { passportSerial: dto.passportSerial },
     });
-    if (candidate)
+
+    if (candidate) {
+      this.logger.error(
+        `Employee with passport ${dto.passportSerial} already exists.`,
+      );
       throw new ConflictException(
         `Employee with this passport ${dto.passportSerial} already exists!`,
       );
+    }
 
     const employee = this.employeeRepository.create(dto);
     await this.employeeRepository.save(employee);
+    this.logger.log(
+      `Employee created successfully with passport ${dto.passportSerial}`,
+    );
     return employee;
   }
 
@@ -75,6 +85,7 @@ export class EmployeeService {
         { month, year },
       )
       .getManyAndCount();
+    this.logger.log('Employees returned successfully');
     return {
       message: 'Employees returned successfully',
       employees: employees,
@@ -100,6 +111,7 @@ export class EmployeeService {
     const employee = await this.getOneEmployee(employeeId);
     Object.assign(employee, dto);
     await this.employeeRepository.save(employee);
+    this.logger.log(`Employee updated successfully with ID ${employeeId}`);
     return employee;
   }
 
@@ -108,55 +120,43 @@ export class EmployeeService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    try {
-      const employee = await this.getOneEmployee(employeeId);
-      for (const media of employee.medias) {
-        mediaIds.push(media.id);
-      }
-      await queryRunner.manager.delete(EmployeeEntity, employeeId);
-      await this.mediaService.deleteMedias(mediaIds, queryRunner);
-      await queryRunner.commitTransaction();
-      return {
-        message: 'Employee deleted successfully',
-      };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(
-        'Something went wrong while deleting employee',
-      );
-    } finally {
-      await queryRunner.release();
+    const employee = await this.getOneEmployee(employeeId);
+    for (const media of employee.medias) {
+      mediaIds.push(media.id);
     }
+    await queryRunner.manager.delete(EmployeeEntity, employeeId);
+    await this.mediaService.deleteMedias(mediaIds, queryRunner);
+    await queryRunner.commitTransaction();
+    this.logger.log(`Employee deleted successfully with ID ${employeeId}`);
+    return {
+      message: 'Employee deleted successfully',
+    };
   }
 
   @Cron('0 0 1 * *')
   async createMonthlyRecords() {
-    try {
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const year = now.getFullYear();
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
 
-      const employees = await this.employeeRepository.find();
+    const employees = await this.employeeRepository.find();
 
-      for (const employee of employees) {
-        const existingRecord = await this.monthlyRecordRepository.findOne({
-          where: { month, year, employee },
-        });
+    for (const employee of employees) {
+      const existingRecord = await this.monthlyRecordRepository.findOne({
+        where: { month, year, employee },
+      });
 
-        if (!existingRecord) {
-          const monthlyRecord = new MonthlyRecordEntity();
-          monthlyRecord.month = month;
-          monthlyRecord.year = year;
-          monthlyRecord.salary = employee.salary;
-          monthlyRecord.employee = employee;
-          await this.monthlyRecordRepository.save(monthlyRecord);
-        }
+      if (!existingRecord) {
+        const monthlyRecord = new MonthlyRecordEntity();
+        monthlyRecord.month = month;
+        monthlyRecord.year = year;
+        monthlyRecord.salary = employee.salary;
+        monthlyRecord.employee = employee;
+        await this.monthlyRecordRepository.save(monthlyRecord);
       }
-
-      console.log('Monthly records created successfully.');
-    } catch (err) {
-      console.error('Error creating monthly records:', err);
     }
+
+    this.logger.log('Monthly records created successfully.');
   }
 
   async checkOrCreateMonthlyRecord(
@@ -184,7 +184,7 @@ export class EmployeeService {
       });
 
       await queryRunner.manager.save(monthlyRecord);
-      console.log(`Monthly record created for employee ${employeeId}.`);
+      this.logger.log(`Monthly record created for employee ${employeeId}.`);
     }
   }
 
@@ -192,231 +192,214 @@ export class EmployeeService {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    try {
-      await this.checkOrCreateMonthlyRecord(employeeId, queryRunner);
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const year = now.getFullYear();
-      await this.getOneEmployee(employeeId);
+    await this.checkOrCreateMonthlyRecord(employeeId, queryRunner);
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    await this.getOneEmployee(employeeId);
 
-      const monthlyRecord = await queryRunner.manager.findOne(
-        MonthlyRecordEntity,
-        {
-          where: { year: year, month: month },
-        },
+    const monthlyRecord = await queryRunner.manager.findOne(
+      MonthlyRecordEntity,
+      {
+        where: { year: year, month: month },
+      },
+    );
+    if (monthlyRecord.salary < dto.penaltySum) {
+      this.logger.error('Monthly salary is not enough to pay penalty');
+      throw new ConflictException(
+        'Monthly salary is not enough to pay penalty',
       );
-      if (monthlyRecord.salary < dto.penaltySum)
-        throw new ConflictException(
-          'Monthly salary is not enough to pay penalty',
-        );
-
-      const penalty = queryRunner.manager.create(PenaltyEntity, {
-        monthlyRecordId: monthlyRecord.id,
-        ...dto,
-      });
-
-      await queryRunner.manager.save(penalty);
-
-      const monthlyRecordDetail = queryRunner.manager.create(
-        MonthlyRecordDetailEntity,
-        {
-          penalty: dto.penaltySum,
-          salary: monthlyRecord.salary - dto.penaltySum,
-          monthlyRecordId: monthlyRecord.id,
-        },
-      );
-      monthlyRecord.salary = monthlyRecordDetail.salary;
-      await queryRunner.manager.save(monthlyRecordDetail);
-      await queryRunner.manager.save(monthlyRecord);
-      await queryRunner.commitTransaction();
-      return { message: 'Penalty created successfully', penalty: penalty };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(err);
-    } finally {
-      await queryRunner.release();
     }
+
+    const penalty = queryRunner.manager.create(PenaltyEntity, {
+      monthlyRecordId: monthlyRecord.id,
+      ...dto,
+    });
+
+    await queryRunner.manager.save(penalty);
+
+    const monthlyRecordDetail = queryRunner.manager.create(
+      MonthlyRecordDetailEntity,
+      {
+        penalty: dto.penaltySum,
+        salary: monthlyRecord.salary - dto.penaltySum,
+        monthlyRecordId: monthlyRecord.id,
+      },
+    );
+    monthlyRecord.salary = monthlyRecordDetail.salary;
+    await queryRunner.manager.save(monthlyRecordDetail);
+    await queryRunner.manager.save(monthlyRecord);
+    await queryRunner.commitTransaction();
+    this.logger.log('Penalty created successfully');
+    return { message: 'Penalty created successfully', penalty: penalty };
   }
 
   async deletePenalty(penaltyId: string) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    try {
-      const penalty = await queryRunner.manager.findOne(PenaltyEntity, {
-        where: { id: penaltyId },
-        relations: { monthlyRecord: true },
-      });
+    const penalty = await queryRunner.manager.findOne(PenaltyEntity, {
+      where: { id: penaltyId },
+      relations: { monthlyRecord: true },
+    });
 
-      if (!penalty) {
-        throw new NotFoundException(`Penalty with ID ${penaltyId} not found.`);
-      }
-      const monthlyRecord = await queryRunner.manager.findOne(
-        MonthlyRecordEntity,
-        { where: { id: penalty.monthlyRecordId } },
-      );
-
-      if (!monthlyRecord) {
-        throw new NotFoundException(
-          'Monthly record not found for the penalty.',
-        );
-      }
-
-      const monthlyRecordDetail = await queryRunner.manager.findOne(
-        MonthlyRecordDetailEntity,
-        {
-          where: { monthlyRecordId: penalty.monthlyRecordId },
-        },
-      );
-
-      if (!monthlyRecordDetail)
-        throw new NotFoundException(
-          'Monthly record detail not found for the penalty.',
-        );
-
-      monthlyRecord.salary += penalty.penaltySum;
-      await queryRunner.manager.save(monthlyRecord);
-
-      await queryRunner.manager.delete(PenaltyEntity, penalty.id);
-
-      await queryRunner.manager.delete(
-        MonthlyRecordDetailEntity,
-        monthlyRecordDetail.id,
-      );
-
-      await queryRunner.commitTransaction();
-      return { message: 'Penalty deleted successfully.' };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(err);
-    } finally {
-      await queryRunner.release();
+    if (!penalty) {
+      throw new NotFoundException(`Penalty with ID ${penaltyId} not found.`);
     }
+    const monthlyRecord = await queryRunner.manager.findOne(
+      MonthlyRecordEntity,
+      { where: { id: penalty.monthlyRecordId } },
+    );
+
+    if (!monthlyRecord) {
+      throw new NotFoundException('Monthly record not found for the penalty.');
+    }
+
+    const monthlyRecordDetail = await queryRunner.manager.findOne(
+      MonthlyRecordDetailEntity,
+      {
+        where: { monthlyRecordId: penalty.monthlyRecordId },
+      },
+    );
+
+    if (!monthlyRecordDetail)
+      throw new NotFoundException(
+        'Monthly record detail not found for the penalty.',
+      );
+
+    monthlyRecord.salary += penalty.penaltySum;
+    await queryRunner.manager.save(monthlyRecord);
+
+    await queryRunner.manager.delete(PenaltyEntity, penalty.id);
+
+    await queryRunner.manager.delete(
+      MonthlyRecordDetailEntity,
+      monthlyRecordDetail.id,
+    );
+
+    await queryRunner.commitTransaction();
+    this.logger.log('Penalty deleted successfully.');
+    return { message: 'Penalty deleted successfully.' };
   }
 
   async createPrepayment(employeeId: string, dto: CreatePrepaymentDto) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    try {
-      await this.checkOrCreateMonthlyRecord(employeeId, queryRunner);
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const year = now.getFullYear();
-      await this.getOneEmployee(employeeId);
+    await this.checkOrCreateMonthlyRecord(employeeId, queryRunner);
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    await this.getOneEmployee(employeeId);
 
-      const monthlyRecord = await queryRunner.manager.findOne(
-        MonthlyRecordEntity,
-        {
-          where: { year: year, month: month },
-        },
+    const monthlyRecord = await queryRunner.manager.findOne(
+      MonthlyRecordEntity,
+      {
+        where: { year: year, month: month },
+      },
+    );
+
+    if (monthlyRecord.salary < dto.prepaymentSum) {
+      this.logger.error('Monthly salary is not enough to pay prepayment');
+      throw new ConflictException(
+        'Monthly salary is not enough to pay prepayment',
       );
-
-      if (monthlyRecord.salary < dto.prepaymentSum)
-        throw new ConflictException(
-          'Monthly salary is not enough to pay penalty',
-        );
-
-      const prepayment = queryRunner.manager.create(PrePaymentEntity, {
-        monthlyRecordId: monthlyRecord.id,
-        ...dto,
-      });
-
-      await queryRunner.manager.save(prepayment);
-
-      const monthlyRecordDetail = queryRunner.manager.create(
-        MonthlyRecordDetailEntity,
-        {
-          prepayment: dto.prepaymentSum,
-          salary: monthlyRecord.salary - dto.prepaymentSum,
-          monthlyRecordId: monthlyRecord.id,
-        },
-      );
-
-      monthlyRecord.salary = monthlyRecordDetail.salary;
-      await queryRunner.manager.save(monthlyRecord);
-      await queryRunner.manager.save(monthlyRecordDetail);
-      await queryRunner.commitTransaction();
-      return {
-        message: 'Prepayment created successfully',
-        prepayment: prepayment,
-      };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(err);
-    } finally {
-      await queryRunner.release();
     }
+
+    const prepayment = queryRunner.manager.create(PrePaymentEntity, {
+      monthlyRecordId: monthlyRecord.id,
+      ...dto,
+    });
+
+    await queryRunner.manager.save(prepayment);
+
+    const monthlyRecordDetail = queryRunner.manager.create(
+      MonthlyRecordDetailEntity,
+      {
+        prepayment: dto.prepaymentSum,
+        salary: monthlyRecord.salary - dto.prepaymentSum,
+        monthlyRecordId: monthlyRecord.id,
+      },
+    );
+
+    monthlyRecord.salary = monthlyRecordDetail.salary;
+    await queryRunner.manager.save(monthlyRecord);
+    await queryRunner.manager.save(monthlyRecordDetail);
+    await queryRunner.commitTransaction();
+    this.logger.log('Prepayment created successfully');
+    return {
+      message: 'Prepayment created successfully',
+      prepayment: prepayment,
+    };
   }
 
   async deletePrepayment(prepaymentId: string) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    try {
-      const prepayment = await queryRunner.manager.findOne(PrePaymentEntity, {
-        where: { id: prepaymentId },
-        relations: { monthlyRecord: true },
-      });
+    const prepayment = await queryRunner.manager.findOne(PrePaymentEntity, {
+      where: { id: prepaymentId },
+      relations: { monthlyRecord: true },
+    });
 
-      if (!prepayment) {
-        throw new NotFoundException(
-          `Prepayment with ID ${prepaymentId} not found.`,
-        );
-      }
-
-      const monthlyRecordDetail = await queryRunner.manager.findOne(
-        MonthlyRecordDetailEntity,
-        {
-          where: { monthlyRecordId: prepayment.monthlyRecordId },
-        },
+    if (!prepayment) {
+      throw new NotFoundException(
+        `Prepayment with ID ${prepaymentId} not found.`,
       );
-
-      if (!monthlyRecordDetail) {
-        throw new NotFoundException(
-          'Monthly record detail not found for the penalty.',
-        );
-      }
-
-      const monthlyRecord = await queryRunner.manager.findOne(
-        MonthlyRecordEntity,
-        { where: { id: prepayment.monthlyRecordId } },
-      );
-
-      if (!monthlyRecord) {
-        throw new NotFoundException(
-          'Monthly record not found for the penalty.',
-        );
-      }
-
-      monthlyRecord.salary += prepayment.prepaymentSum;
-      await queryRunner.manager.save(monthlyRecord);
-
-      await queryRunner.manager.delete(PrePaymentEntity, prepayment.id);
-
-      await queryRunner.manager.delete(
-        MonthlyRecordDetailEntity,
-        monthlyRecordDetail.id,
-      );
-
-      await queryRunner.commitTransaction();
-      return { message: 'Prepayment deleted successfully.' };
-    } catch (err) {
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException(err);
-    } finally {
-      await queryRunner.release();
     }
+
+    const monthlyRecordDetail = await queryRunner.manager.findOne(
+      MonthlyRecordDetailEntity,
+      {
+        where: { monthlyRecordId: prepayment.monthlyRecordId },
+      },
+    );
+
+    if (!monthlyRecordDetail) {
+      throw new NotFoundException(
+        'Monthly record detail not found for the penalty.',
+      );
+    }
+
+    const monthlyRecord = await queryRunner.manager.findOne(
+      MonthlyRecordEntity,
+      { where: { id: prepayment.monthlyRecordId } },
+    );
+
+    if (!monthlyRecord) {
+      throw new NotFoundException('Monthly record not found for the penalty.');
+    }
+
+    monthlyRecord.salary += prepayment.prepaymentSum;
+    await queryRunner.manager.save(monthlyRecord);
+
+    await queryRunner.manager.delete(PrePaymentEntity, prepayment.id);
+
+    await queryRunner.manager.delete(
+      MonthlyRecordDetailEntity,
+      monthlyRecordDetail.id,
+    );
+
+    await queryRunner.commitTransaction();
+    this.logger.log('Prepayment deleted successfully.');
+    return { message: 'Prepayment deleted successfully.' };
   }
 
   async createEmployeeImage(employeeId: string, image: Express.Multer.File) {
-    await this.getOneEmployee(employeeId);
+    const employee = await this.employeeRepository.findOne({
+      where: { id: employeeId },
+    });
+    if (!employee) {
+      await unlink(image.path);
+      this.logger.error(`Employee with ID ${employeeId} not found.`);
+      throw new NotFoundException('Employee not found');
+    }
     const media = await this.mediaService.createMedia(
       image,
       employeeId,
       'employeeId',
     );
-
+    this.logger.log(`Employee image created successfully with ID ${media.id}`);
     return {
       message: 'Employee image created successfully!',
       media: media,
@@ -425,6 +408,7 @@ export class EmployeeService {
 
   async deleteEmployeeImage(mediaId: string) {
     await this.mediaService.deleteOneMedia(mediaId);
+    this.logger.log(`Employee image deleted successfully with ID ${mediaId}`);
     return {
       message: 'Employee image deleted successfully!',
     };

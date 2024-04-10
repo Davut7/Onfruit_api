@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { UpdateAddressDto } from './dto/updateAddress.dto';
 import { ClientAddressEntity } from './entities/address.entity';
@@ -13,6 +14,8 @@ import { CreateAddressDto } from './dto/createAddressDto.dto';
 
 @Injectable()
 export class AddressService {
+  private readonly logger = new Logger(AddressService.name);
+
   constructor(
     @InjectRepository(ClientAddressEntity)
     private addressRepository: Repository<ClientAddressEntity>,
@@ -24,8 +27,10 @@ export class AddressService {
     const candidate = await this.addressRepository.findOne({
       where: { title: dto.title },
     });
-    if (candidate)
+    if (candidate) {
+      this.logger.error(`Address with this name already exists!`);
       throw new BadRequestException(`Address with this name already exists!`);
+    }
     const address = this.addressRepository.create(dto);
     await this.addressRepository.save(address);
     return address;
@@ -50,17 +55,13 @@ export class AddressService {
 
   async updateAddress(dto: UpdateAddressDto, addressId: string) {
     const address = await this.getOneAddress(addressId);
-
     Object.assign(address, dto);
-
     await this.addressRepository.save(address);
-
     return address;
   }
 
   async getReadyAddresses(query: GetReadyAddressesDto) {
     const { search = '', lng = 'ru' } = query;
-
     const readyAddresses = await this.readyAddressesRepository
       .createQueryBuilder('readyAddresses')
       .select(['readyAddresses.id', `readyAddresses.${lng}Address`])
@@ -75,8 +76,10 @@ export class AddressService {
     const address = await this.addressRepository.findOne({
       where: { id: addressId },
     });
-
-    if (!address) throw new NotFoundException('Address not found');
+    if (!address) {
+      this.logger.error('Address not found');
+      throw new NotFoundException('Address not found');
+    }
     return address;
   }
 }

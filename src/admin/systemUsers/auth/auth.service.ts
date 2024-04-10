@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   Logger,
@@ -31,12 +32,14 @@ export class AdminAuthService {
       this.logger.error(`This user is already registered!`);
       throw new ConflictException(`User with name ${dto.name} already exists!`);
     }
+    if (dto.password !== dto.confirmPassword)
+      throw new BadRequestException(
+        'Password and confirm password are not the same',
+      );
     dto.password = await generateHash(dto.password);
-    dto.confirmPassword = dto.password;
     const user = this.adminUserRepository.create({
       name: dto.name,
       password: dto.password,
-      confirmPassword: dto.confirmPassword,
       role: dto.role,
     });
 

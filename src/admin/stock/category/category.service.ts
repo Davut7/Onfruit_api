@@ -12,6 +12,7 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateCategoryDto } from './dto/createCategory.dto';
 import { UpdateCategoryDto } from './dto/updateCategory.dto';
 import { MediaService } from 'src/media/media.service';
+import { unlink } from 'fs/promises';
 
 @Injectable()
 export class CategoryService {
@@ -22,6 +23,7 @@ export class CategoryService {
     private dataSource: DataSource,
     private mediaService: MediaService,
   ) {}
+
   async createCategory(dto: CreateCategoryDto) {
     this.logger.log(`Creating category! \n ${JSON.stringify(dto, null, 2)}`);
     await Promise.all([
@@ -197,7 +199,13 @@ export class CategoryService {
   }
 
   async createCategoryImage(categoryId: string, image: Express.Multer.File) {
-    const category = await this.getOneCategory(categoryId);
+    const category = await this.categoryRepository.findOne({
+      where: { id: categoryId },
+    });
+    if (!category) {
+      await unlink(image.path);
+      throw new NotFoundException('Category not found');
+    }
     const media = await this.mediaService.createMedia(
       image,
       category.id,

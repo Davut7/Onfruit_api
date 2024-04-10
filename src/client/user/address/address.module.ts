@@ -7,6 +7,7 @@ import { UserEntity } from '../users/entities/user.entity';
 import { ClientReadyAddressEntity } from './entities/readyAddresses.entity';
 import { UserModule } from '../users/user.module';
 import { TokenModule } from '../token/userToken.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { TokenModule } from '../token/userToken.module';
     ]),
     TokenModule,
     UserModule,
+    RedisModule,
   ],
   controllers: [AddressController],
   providers: [AddressService],

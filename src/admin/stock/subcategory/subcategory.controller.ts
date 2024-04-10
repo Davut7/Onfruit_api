@@ -37,6 +37,7 @@ import {
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
   getSchemaPath,
 } from '@nestjs/swagger';
@@ -50,6 +51,7 @@ import { ProductEntity } from '../product/entities/product.entity';
 export class SubcategoryController {
   constructor(private readonly subcategoryService: SubcategoryService) {}
 
+  @ApiOperation({ summary: 'Create a subcategory' })
   @ApiCreatedResponse({
     description: 'Subcategory created successfully',
     schema: {
@@ -80,6 +82,7 @@ export class SubcategoryController {
     return this.subcategoryService.createSubcategory(dto, categoryId);
   }
 
+  @ApiOperation({ summary: 'Upload an image for a subcategory' })
   @ApiOkResponse({
     description: 'Subcategory image uploaded successfully',
     schema: {
@@ -138,6 +141,7 @@ export class SubcategoryController {
     return this.subcategoryService.createSubcategoryImage(subcategoryId, image);
   }
 
+  @ApiOperation({ summary: 'Delete an image for a subcategory' })
   @ApiOkResponse({
     description: 'Subcategory media deleted successfully',
     schema: {
@@ -161,6 +165,7 @@ export class SubcategoryController {
     return await this.subcategoryService.deleteSubcategoryImage(mediaId);
   }
 
+  @ApiOperation({ summary: 'Get all subcategories' })
   @ApiOkResponse({
     description: 'All subcategories returned successfully',
     schema: {
@@ -184,6 +189,7 @@ export class SubcategoryController {
     return await this.subcategoryService.getSubcategories(query);
   }
 
+  @ApiOperation({ summary: 'Get a subcategory by ID' })
   @ApiOkResponse({
     description: 'Subcategory returned by id',
     schema: {
@@ -218,6 +224,7 @@ export class SubcategoryController {
     );
   }
 
+  @ApiOperation({ summary: 'Update a subcategory' })
   @ApiOkResponse({
     description: 'Subcategory updated by id',
     schema: {
@@ -248,6 +255,7 @@ export class SubcategoryController {
     return await this.subcategoryService.updateSubcategory(subcategoryId, dto);
   }
 
+  @ApiOperation({ summary: 'Delete a subcategory' })
   @ApiOkResponse({
     description: 'Subcategory deleted by id',
     schema: {

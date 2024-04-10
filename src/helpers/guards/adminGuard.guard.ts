@@ -6,20 +6,21 @@ import {
 } from '@nestjs/common';
 import { AdminTokenDto } from 'src/admin/systemUsers/token/dto/adminToken.dto';
 import { AdminTokenService } from 'src/admin/systemUsers/token/token.service';
-import { AdminUsersService } from 'src/admin/systemUsers/user/users.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
   constructor(
     private adminTokenService: AdminTokenService,
-    private adminUserService: AdminUsersService,
+    private redisService: RedisService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
     try {
       const authHeader = req.headers.authorization;
-      if (!authHeader) throw new UnauthorizedException({ message: 'User not authorized' });
+      if (!authHeader)
+        throw new UnauthorizedException({ message: 'User not authorized' });
       const bearer = authHeader.split(' ')[0];
       const token = authHeader.split(' ')[1];
 
@@ -31,9 +32,12 @@ export class AdminGuard implements CanActivate {
         token,
       ) as AdminTokenDto;
 
-      const user = await this.adminUserService.getMe(userToken.id);
+      const isInBlackList = await this.redisService.getAccessToken(token);
 
-      req.currentUser = user;
+      if (isInBlackList) {
+        throw new UnauthorizedException({ message: 'User not authorized' });
+      }
+      req.currentUser = userToken;
       return true;
     } catch (e) {
       throw new UnauthorizedException({ message: 'User not authorized' });

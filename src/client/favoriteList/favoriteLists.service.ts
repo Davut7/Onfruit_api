@@ -37,10 +37,14 @@ export class FavoriteListsService {
       where: { title: dto.title },
     });
 
-    if (candidate)
+    if (candidate) {
+      this.logger.error(
+        'Favorite list with title ' + candidate.title + 'already exists',
+      );
       throw new BadRequestException(
         'Favorite list with title ' + candidate.title + 'already exists',
       );
+    }
 
     const favoriteList = this.favoriteListRepository.create({
       ...dto,
@@ -101,7 +105,10 @@ export class FavoriteListsService {
     const { favoriteProducts, favoriteProductCount } =
       await this.getProductsByListId(favoriteListId, query, user);
 
-    if (!favoriteList) throw new NotFoundException('Favorites not found');
+    if (!favoriteList) {
+      this.logger.error('Favorites not found');
+      throw new NotFoundException('Favorites not found');
+    }
 
     this.logger.log(
       `Favorite list with id ${favoriteListId} returned successfully!`,
@@ -155,14 +162,19 @@ export class FavoriteListsService {
       .where('product.id = :productId', { productId })
       .getOne();
 
-    if (!product) throw new NotFoundException('Product not found');
+    if (!product) {
+      this.logger.error('Product not found');
+      throw new NotFoundException('Product not found');
+    }
 
     const candidate = await this.favoriteListProductsRepository.findOne({
       where: { productId: productId },
     });
 
-    if (candidate)
+    if (candidate) {
+      this.logger.error('Product already in favorite list');
       throw new NotFoundException('Product already in favorite list');
+    }
 
     const maxPrice = product.prices
       .map((price) => price.price)
@@ -195,10 +207,11 @@ export class FavoriteListsService {
       });
 
     if (!favoriteListProduct) {
-      this.logger.log(
+      this.logger.error(
         `Favorite list product with id ${favoriteListProductId} not found!`,
       );
-      throw new NotFoundException('Favorite lis product  not found!');
+
+      throw new NotFoundException('Favorite list product not found!');
     }
 
     this.logger.log(
@@ -295,8 +308,10 @@ export class FavoriteListsService {
     const favoriteList = await this.favoriteListRepository.findOne({
       where: { id: favoriteListId },
     });
-    if (!favoriteList)
+    if (!favoriteList) {
+      this.logger.error(`Favorite list with id ${favoriteListId}`);
       throw new NotFoundException(`Favorite list with id ${favoriteListId}`);
+    }
     return favoriteList;
   }
 

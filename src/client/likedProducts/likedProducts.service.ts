@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../user/users/entities/user.entity';
@@ -8,6 +8,7 @@ import { GetLikedProductsDto } from './dto/getLikedProducts.dto';
 
 @Injectable()
 export class LikedProductsService {
+  private readonly logger = new Logger(LikedProductsService.name);
   constructor(
     @InjectRepository(LikedProductsEntity)
     private likedProductsRepository: Repository<LikedProductsEntity>,
@@ -15,15 +16,19 @@ export class LikedProductsService {
   ) {}
 
   async createLikedProduct(userId: string, productId: string) {
+    this.logger.log(
+      `Creating liked product: userId=${userId}, productId=${productId}`,
+    );
+
     await this.clientProductService.getByProductId(productId);
 
     const candidate = await this.likedProductsRepository.findOne({
       where: { userId: userId, productId: productId },
     });
-    if (candidate)
-      throw new NotFoundException(
-        `You already have this product in liked list`,
-      );
+    if (candidate) {
+      this.logger.error('Product already in liked list');
+      throw new NotFoundException('You already have this product in liked list');
+    }
 
     const basketProduct = this.likedProductsRepository.create({
       userId: userId,
@@ -31,6 +36,8 @@ export class LikedProductsService {
     });
 
     await this.likedProductsRepository.save(basketProduct);
+
+    this.logger.log(`Product added to liked list successfully!`);
     return {
       message: 'Product added to liked list successfully!',
       basketProduct: basketProduct,
@@ -39,6 +46,8 @@ export class LikedProductsService {
 
   async getLikedProducts(currentUser: UserEntity, query: GetLikedProductsDto) {
     const { lng = 'tkm', take = 10, page = 1 } = query;
+
+    this.logger.log(`Finding liked products for user with id ${currentUser.id}`);
 
     const likedProductsQuery = this.likedProductsRepository
       .createQueryBuilder('likedProducts')
@@ -79,8 +88,15 @@ export class LikedProductsService {
       likedProductsQuery.andWhere('product.commodity = :commodity', {
         commodity: query.commodity,
       });
+
     const [products, count] = await likedProductsQuery.getManyAndCount();
-    if (!products) return { message: 'You do not have liked products yet.' };
+
+    if (!products) {
+      this.logger.error('No liked products found');
+      return { message: 'You do not have liked products yet.' };
+    }
+
+    this.logger.log(`Liked products found successfully!`);
     return {
       products: products,
       productsCount: count,
@@ -96,17 +112,22 @@ export class LikedProductsService {
   }
 
   async deleteLikedProduct(likedProductId: string, userId: string) {
+    this.logger.log(`Deleting liked product with id ${likedProductId}`);
     const candidate = await this.getOneLikedProduct(likedProductId, userId);
-    if (!candidate)
+    if (!candidate) {
+      this.logger.error(`Liked product with id ${likedProductId} not found`);
       throw new NotFoundException(
         `Liked product with product id ${likedProductId} not found!`,
       );
+    }
     const likedProduct = await this.likedProductsRepository.delete({
       userId: userId,
       id: likedProductId,
     });
+    this.logger.log(`Liked product deleted successfully!`);
     return {
       message: 'Liked product deleted successfully!',
     };
   }
 }
+

@@ -15,6 +15,7 @@ import { ForbiddenError } from '@casl/ability';
 import { AdminTokenService } from 'src/admin/systemUsers/token/token.service';
 import { AdminUsersService } from 'src/admin/systemUsers/user/users.service';
 import { AdminTokenDto } from 'src/admin/systemUsers/token/dto/adminToken.dto';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AbilitiesGuard implements CanActivate {
@@ -23,6 +24,7 @@ export class AbilitiesGuard implements CanActivate {
     private caslAbilityFactory: AbilityFactory,
     private AdminUserTokenService: AdminTokenService,
     private adminUsersService: AdminUsersService,
+    private redisService: RedisService,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const rules =
@@ -42,7 +44,10 @@ export class AbilitiesGuard implements CanActivate {
         token,
       ) as AdminTokenDto;
       const checkUser = await this.adminUsersService.getMe(user.id);
-
+      const isInBlackList = await this.redisService.getAccessToken(token);
+      if (isInBlackList) {
+        throw new UnauthorizedException({ message: 'User not authorized' });
+      }
       const ability = this.caslAbilityFactory.createForUser(checkUser);
       rules.every((rule) =>
         ForbiddenError.from(ability).throwUnlessCan(rule.action, rule.subject),

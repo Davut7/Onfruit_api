@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
 import { Brackets, Repository } from 'typeorm';
@@ -13,6 +13,8 @@ import { GetClientProducts } from './dto/getProducts.dto';
 
 @Injectable()
 export class ClientProductService {
+  private readonly logger = new Logger(ClientProductService.name);
+
   constructor(
     @InjectRepository(ProductEntity)
     private productRepository: Repository<ProductEntity>,
@@ -27,11 +29,14 @@ export class ClientProductService {
 
     const userType = user ? user.role : 'user';
 
+    this.logger.log(`Getting product with id ${productId}`);
+
     const productQuery = this.productRepository
       .createQueryBuilder('products')
       .leftJoin('products.productAttributes', 'productAttributes')
       .leftJoin('products.medias', 'medias')
       .leftJoin('products.prices', 'prices');
+
     if (user) {
       productQuery
         .leftJoinAndSelect(
@@ -49,6 +54,7 @@ export class ClientProductService {
           },
         );
     }
+
     const product = await productQuery
       .select([
         'products.id',
@@ -72,16 +78,18 @@ export class ClientProductService {
         user ? 'likedProducts.productId' : 'NULL as likedProductId',
       ])
       .where(
-        'productAttributes.language = :language  AND prices.userType = :userType AND productAttributes.id IS NOT NULL AND medias.id IS NOT NULL AND prices.price IS NOT NULL AND products.currentSaleQuantity > 0',
+        'productAttributes.language = :language AND prices.userType = :userType AND productAttributes.id IS NOT NULL AND medias.id IS NOT NULL AND prices.price IS NOT NULL AND products.currentSaleQuantity > 0',
         {
           language: lng,
           userType,
         },
       )
+      .andWhere('products.id = :productId', { productId })
       .getOne();
 
-    if (!product)
+    if (!product) {
       throw new BadRequestException(`Product with id ${productId} not found!`);
+    }
 
     return product;
   }
@@ -98,11 +106,14 @@ export class ClientProductService {
 
     const userType = user ? user.role : 'user';
 
+    this.logger.log(`Getting products with query: ${JSON.stringify(query)}`);
+
     const productQuery = this.productRepository
       .createQueryBuilder('products')
       .leftJoin('products.productAttributes', 'productAttributes')
       .leftJoin('products.medias', 'medias')
       .leftJoin('products.prices', 'prices');
+
     if (user) {
       productQuery
         .leftJoinAndSelect(
@@ -120,6 +131,7 @@ export class ClientProductService {
           },
         );
     }
+
     productQuery
       .select([
         'products.id',
@@ -145,7 +157,7 @@ export class ClientProductService {
         user ? 'basketProducts.productId' : 'NULL AS basketProductsId',
       ])
       .where(
-        'productAttributes.language = :language  AND prices.userType = :userType AND productAttributes.id IS NOT NULL AND medias.id IS NOT NULL AND prices.price IS NOT NULL AND products.currentSaleQuantity > 0',
+        'productAttributes.language = :language AND prices.userType = :userType AND productAttributes.id IS NOT NULL AND medias.id IS NOT NULL AND prices.price IS NOT NULL AND products.currentSaleQuantity > 0',
         {
           language: lng,
           userType,
@@ -179,12 +191,15 @@ export class ClientProductService {
   }
 
   async getByProductId(productId: string) {
+    this.logger.log(`Getting product with id ${productId}`);
+
     const product = await this.productRepository.findOne({
       where: { id: productId },
     });
 
-    if (!product)
+    if (!product) {
       throw new BadRequestException(`Product with id ${productId} not found!`);
+    }
 
     return product;
   }

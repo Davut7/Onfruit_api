@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,11 +15,13 @@ import { ProductEntity } from '../stock/product/entities/product.entity';
 
 @Injectable()
 export class OrderService {
+  private readonly logger = new Logger(OrderService.name);
   constructor(
     @InjectRepository(OrderEntity)
     private orderRepository: Repository<OrderEntity>,
     private dataSource: DataSource,
   ) {}
+
   async getOrders(query?: GetOrders) {
     const {
       order = OrderType.ASC,
@@ -44,6 +47,7 @@ export class OrderService {
       .orderBy('orders.' + orderBy, order)
       .getManyAndCount();
 
+    this.logger.log('Orders retrieved successfully');
     return {
       message: 'Orders retrieved successfully',
       orders: orders,
@@ -65,7 +69,11 @@ export class OrderService {
         orderId: orderId,
       })
       .getOne();
-    if (!order) throw new NotFoundException(`Order ${orderId} not found`);
+    if (!order) {
+      this.logger.error(`Order with ID ${orderId} not found`);
+      throw new NotFoundException(`Order ${orderId} not found`);
+    }
+    this.logger.log(`Order retrieved successfully with ID ${orderId}`);
     return order;
   }
 
@@ -73,8 +81,11 @@ export class OrderService {
     const order = await this.orderRepository.findOne({
       where: { id: orderId },
     });
-    if (!order)
+    if (!order) {
+      this.logger.error(`Order with ID ${orderId} not found`);
       throw new NotFoundException(`Order with id ${orderId} not found`);
+    }
+    this.logger.log(`Order retrieved successfully with ID ${orderId}`);
     return order;
   }
 
@@ -95,6 +106,7 @@ export class OrderService {
           await queryRunner.manager.save(product);
         }
         await queryRunner.manager.save(order);
+        this.logger.log(`Order updated successfully with ID ${orderId}`);
         return {
           message: 'Order updated successfully',
           order: order,
@@ -111,6 +123,7 @@ export class OrderService {
           await queryRunner.manager.save(product);
         }
         await queryRunner.manager.save(order);
+        this.logger.log(`Order updated successfully with ID ${orderId}`);
         return {
           message: 'Order updated successfully',
           order: order,
@@ -118,12 +131,16 @@ export class OrderService {
       }
 
       await queryRunner.manager.save(order);
+      this.logger.log(`Order updated successfully with ID ${orderId}`);
       return {
         message: 'Order updated successfully',
         order: order,
       };
     } catch (err) {
       console.log(err);
+      this.logger.error(
+        `Error occurred while updating order with ID ${orderId}`,
+      );
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException(
         'Something went wrong when updating order',
@@ -139,10 +156,14 @@ export class OrderService {
     await queryRunner.startTransaction();
     try {
       const order = await this.getOneOrder(orderId);
-      if (order.status === OrderStatus.DELIVERING)
+      if (order.status === OrderStatus.DELIVERING) {
+        this.logger.error(
+          `Order with ID ${orderId} cannot be deleted as it is already on road.`,
+        );
         throw new BadRequestException(
           'Order already on road. We can delete it now.',
         );
+      }
       for (const orderProduct of order.orderProducts) {
         const product = await queryRunner.manager.findOne(ProductEntity, {
           where: { id: orderProduct.productId },
@@ -152,10 +173,14 @@ export class OrderService {
         await queryRunner.manager.save(product);
       }
       await this.orderRepository.delete(order.id);
+      this.logger.log(`Order deleted successfully with ID ${orderId}`);
       return {
         message: 'Order deleted successfully',
       };
     } catch (error) {
+      this.logger.error(
+        `Error occurred while deleting order with ID ${orderId}`,
+      );
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException('Error while deleting order');
     } finally {

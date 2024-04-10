@@ -8,6 +8,7 @@ import {
   ConflictException,
   NotFoundException,
   UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { AdminRegistrationUserDto } from './dto/registrationDto.dto';
 import { AdminUserLoginDto } from './dto/loginDto.dto';
@@ -22,11 +23,16 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { AdminsEntity } from '../user/entities/adminUsers.entity';
+import { RedisService } from 'src/redis/redis.service';
+import { AdminGuard } from 'src/helpers/guards/adminGuard.guard';
 
 @ApiTags('admin-auth')
 @Controller('admin/auth')
 export class AdminAuthController {
-  constructor(private readonly adminUserAuthService: AdminAuthService) {}
+  constructor(
+    private readonly adminUserAuthService: AdminAuthService,
+    private redisService: RedisService,
+  ) {}
 
   @ApiOperation({ summary: 'Register a new system user' })
   @ApiConflictResponse({
@@ -136,10 +142,14 @@ export class AdminAuthController {
       },
     },
   })
+  @UseGuards(AdminGuard)
   @Post('logout')
-  logout(@Req() req, @Res() res) {
+  async logout(@Req() req, @Res() res) {
     const refreshToken = req.cookies['refreshToken'];
     this.adminUserAuthService.logout(refreshToken);
+    const authHeader = req.headers.authorization;
+    const token = authHeader.split(' ')[1];
+    await this.redisService.setTokenWithExpiry(token, token);
     res.clearCookie('refreshToken');
     res.status(200).json({
       message: 'Log out successfully!',

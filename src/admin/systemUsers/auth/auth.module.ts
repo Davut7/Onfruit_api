@@ -4,9 +4,14 @@ import { AdminAuthController } from './auth.controller';
 import { AdminsEntity } from '../user/entities/adminUsers.entity';
 import { AdminAuthService } from './auth.service';
 import { AdminTokenModule } from '../token/token.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AdminsEntity]), AdminTokenModule],
+  imports: [
+    TypeOrmModule.forFeature([AdminsEntity]),
+    AdminTokenModule,
+    RedisModule,
+  ],
   controllers: [AdminAuthController],
   providers: [AdminAuthService],
 })

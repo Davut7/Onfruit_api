@@ -8,6 +8,7 @@ import { ProductModule } from '../product/product.module';
 import { AbilityControlModule } from 'src/admin/abilityControl/abilityControl.module';
 import { ImageTransformer } from 'src/helpers/pipes/image.transform';
 import { MediaModule } from 'src/media/media.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MediaModule } from 'src/media/media.module';
     forwardRef(() => ProductModule),
     AbilityControlModule,
     MediaModule,
+    RedisModule,
   ],
   controllers: [SubcategoryController],
   providers: [SubcategoryService, ImageTransformer],

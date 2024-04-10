@@ -4,6 +4,7 @@ import {
   BadRequestException,
   UnauthorizedException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { UserRegDto, UserLoginDto } from '../users/dto/userDto.dto';
 import { UserTokenDto } from '../token/dto/userToken.dto';
@@ -17,6 +18,8 @@ import { UserTokenService } from '../token/userToken.service';
 
 @Injectable()
 export class ClientAuthService {
+  private readonly logger = new Logger(ClientAuthService.name);
+
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -27,10 +30,12 @@ export class ClientAuthService {
     const candidate = await this.userRepository.findOne({
       where: { phoneNumber: dto.phoneNumber },
     });
-    if (candidate)
+    if (candidate) {
+      this.logger.error(`User with ${dto.phoneNumber} already exists`);
       throw new ConflictException(
         `User with ${dto.phoneNumber} already exists`,
       );
+    }
     const user = this.userRepository.create(dto);
     await this.userRepository.save(user);
     await this.sendActivationCode(user.id);
@@ -39,14 +44,17 @@ export class ClientAuthService {
       message: 'User registered successfully!',
     };
   }
+
   async distributerRegistration(dto: DistributerRegDto) {
     const candidate = await this.userRepository.findOne({
       where: { phoneNumber: dto.phoneNumber },
     });
-    if (candidate)
+    if (candidate) {
+      this.logger.error(`User with ${dto.phoneNumber} already exists`);
       throw new ConflictException(
         `User with ${dto.phoneNumber} already exists`,
       );
+    }
     const user = this.userRepository.create(dto);
     await this.userRepository.save(user);
     await this.sendActivationCode(user.id);
@@ -59,10 +67,12 @@ export class ClientAuthService {
   async verifyAccount(verificationCode: string, userId: string) {
     const user = await this.getUserById(userId);
     if (user.activationCode !== verificationCode) {
+      this.logger.error(`Wrong verification code`);
       throw new BadRequestException(`Wrong verification code`);
     }
     if (Date.now() - +user.codeTime >= 1 * 60 * 1000) {
-      throw new BadRequestException('Activation code expired!');
+      this.logger.error(`Activation code expired!`);
+      throw new BadRequestException(`Activation code expired!`);
     }
     user.isActivated = true;
     await this.userRepository.update({ id: user.id }, { isActivated: true });
@@ -93,19 +103,26 @@ export class ClientAuthService {
       await this.userRepository.save(user);
       return { message: 'Token deleted successfully' };
     } catch (err) {
+      this.logger.error('Error while deleting token');
       return { message: 'Error while deleting token' };
     }
   }
 
   async refreshTokens(refreshToken: string) {
-    if (!refreshToken)
+    if (!refreshToken) {
+      this.logger.error('User not authorized');
       throw new UnauthorizedException({ message: 'User not authorized' });
+    }
     const tokenFromDB = await this.tokenService.getToken(refreshToken);
-    if (!tokenFromDB)
+    if (!tokenFromDB) {
+      this.logger.error('User not authorized');
       throw new UnauthorizedException({ message: 'User not authorized' });
+    }
     const validToken = this.tokenService.validateAccessToken(refreshToken);
-    if (!validToken && !tokenFromDB)
+    if (!validToken && !tokenFromDB) {
+      this.logger.error('User not authorized');
       throw new UnauthorizedException({ message: 'User not authorized' });
+    }
     const user = await this.userRepository.findOne({
       where: { id: tokenFromDB.userId },
     });
@@ -133,7 +150,10 @@ export class ClientAuthService {
 
   async getUserById(userId: string) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException(`User not found please register`);
+    if (!user) {
+      this.logger.error(`User not found please register`);
+      throw new NotFoundException(`User not found please register`);
+    }
     return user;
   }
 
@@ -141,10 +161,14 @@ export class ClientAuthService {
     const user = await this.userRepository.findOne({
       where: { phoneNumber: phoneNumber },
     });
-    if (!user)
+    if (!user) {
+      this.logger.error(
+        `User with phone number ${phoneNumber} not found! Please register first`,
+      );
       throw new NotFoundException(
         `User with phone number ${phoneNumber} not found! Please register first`,
       );
+    }
     return user;
   }
 }

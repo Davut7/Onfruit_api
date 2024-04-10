@@ -5,10 +5,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserTokenService } from '../../client/user/token/userToken.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class ClientAuthGuard implements CanActivate {
-  constructor(private tokenService: UserTokenService) {}
+  constructor(
+    private tokenService: UserTokenService,
+    private redisService: RedisService,
+  ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
     try {
@@ -21,6 +25,10 @@ export class ClientAuthGuard implements CanActivate {
       const tokenData = this.tokenService.validateAccessToken(token);
       if (!tokenData)
         throw new UnauthorizedException({ message: 'User not authorized' });
+      const isInBlackList = await this.redisService.getAccessToken(token);
+      if (isInBlackList) {
+        throw new UnauthorizedException({ message: 'User not authorized' });
+      }
       req.currentUser = tokenData;
       return true;
     } catch (e) {

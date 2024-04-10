@@ -22,7 +22,7 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
   },
-  rules:{
-    endOfLine:auto
-  }
+  rules: {
+    endOfLine: auto,
+  },
 };

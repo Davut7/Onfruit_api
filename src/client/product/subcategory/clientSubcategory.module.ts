@@ -7,12 +7,14 @@ import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
 import { UserEntity } from 'src/client/user/users/entities/user.entity';
 import { UserModule } from 'src/client/user/users/user.module';
 import { TokenModule } from 'src/client/user/token/userToken.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([SubcategoryEntity, ProductEntity, UserEntity]),
     TokenModule,
     UserModule,
+    RedisModule,
   ],
   controllers: [ClientSubcategoryController],
   providers: [ClientSubcategoryService],

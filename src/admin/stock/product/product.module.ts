@@ -9,6 +9,7 @@ import { ManufacturerCountriesEntity } from './entities/countries.entity';
 import { AbilityControlModule } from 'src/admin/abilityControl/abilityControl.module';
 import { ProductAttributesModule } from '../productAttributes/productAttributes.module';
 import { MediaModule } from 'src/media/media.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MediaModule } from 'src/media/media.module';
     forwardRef(() => ProductAttributesModule),
     AbilityControlModule,
     MediaModule,
+    RedisModule,
   ],
   controllers: [ProductController],
   providers: [ProductService],

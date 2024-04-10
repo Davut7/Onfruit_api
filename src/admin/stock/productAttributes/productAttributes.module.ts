@@ -5,12 +5,14 @@ import { AbilityControlModule } from 'src/admin/abilityControl/abilityControl.mo
 import { ProductAttributesEntity } from './entities/productAttributes.entity';
 import { ProductAttributesController } from './productAttributes.controller';
 import { ProductAttributesService } from './productAttributes.service';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProductAttributesEntity]),
     forwardRef(() => ProductModule),
     AbilityControlModule,
+    RedisModule,
   ],
   controllers: [ProductAttributesController],
   providers: [ProductAttributesService],

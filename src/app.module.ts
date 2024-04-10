@@ -31,8 +31,6 @@ import { ClientProductModule } from './client/product/product/clientProduct.modu
 import { FavoriteListsModule } from './client/favoriteList/favoriteLists.module';
 import { UserOrderModule } from './client/order/userOrder.module';
 import { UserBasketModule } from './client/basket/basket.module';
-import { SharedAdminModule } from './shared/sharedAdmin.module';
-import { SharedClientModule } from './shared/sharedClient.module';
 import { MediaModule } from './media/media.module';
 import { ReviewModule } from './client/review/review.module';
 import { BannerModule } from './admin/banner/banner.module';
@@ -84,8 +82,6 @@ import { AnalyticsModule } from './admin/analytics/analytics.module';
     UserOrderModule,
     UserBasketModule,
     FavoriteListsModule,
-    SharedClientModule,
-    SharedAdminModule,
     ReviewModule,
     BannerModule,
     DiscountModule,

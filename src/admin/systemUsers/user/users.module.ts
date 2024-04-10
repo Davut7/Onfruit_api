@@ -7,12 +7,14 @@ import { SubjectEntity } from './entities/adminSubjects.entity';
 import { ActionEntity } from './entities/adminActions.entity';
 import { AdminTokenModule } from '../token/token.module';
 import { AbilityControlModule } from 'src/admin/abilityControl/abilityControl.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([AdminsEntity, SubjectEntity, ActionEntity]),
     AdminTokenModule,
     forwardRef(() => AbilityControlModule),
+    RedisModule,
   ],
   controllers: [AdminUsersController],
   providers: [AdminUsersService],

@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import CustomLogger from '../../helpers/log/customLogger';
 import { AdminTokenModule } from '../systemUsers/token/token.module';
 import { AdminUsersModule } from '../systemUsers/user/users.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AdminUsersModule } from '../systemUsers/user/users.module';
     TypeOrmModule.forFeature([LogsEntity]),
     AdminTokenModule,
     AdminUsersModule,
+    RedisModule,
   ],
   controllers: [LoggerController],
   providers: [LoggerService, CustomLogger],

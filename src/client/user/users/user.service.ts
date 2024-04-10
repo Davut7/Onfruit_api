@@ -3,6 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { UserUpdateDto } from './dto/userDto.dto';
 import { UserEntity } from './entities/user.entity';
@@ -14,6 +15,8 @@ import { MediaService } from 'src/media/media.service';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
@@ -27,23 +30,34 @@ export class UserService {
       .leftJoinAndSelect('users.media', 'media')
       .where('users.id = :id', { id: currentUser.id })
       .getOne();
-    if (!user) throw new NotFoundException(`Your account not found!`);
+    if (!user) {
+      this.logger.error(`Your account not found!`);
+      throw new NotFoundException(`Your account not found!`);
+    }
     return user;
   }
 
   async updateUser(currentUser: UserEntity, dto: UserUpdateDto) {
     const user = await this.getMe(currentUser);
-    if (!user) throw new NotFoundException(`Your account not found!`);
+    if (!user) {
+      this.logger.error(`Your account not found!`);
+      throw new NotFoundException(`Your account not found!`);
+    }
     Object.assign(user, dto);
     await this.userRepository.save(user);
     return user;
   }
 
   async updateDistributer(currentUser: UserEntity, dto: DistributerUpdateDto) {
-    if (currentUser.role !== 'distributor')
+    if (currentUser.role !== 'distributor') {
+      this.logger.error('You must be a distributor');
       throw new BadRequestException('You must be a distributor');
+    }
     const distributer = await this.getMe(currentUser);
-    if (!distributer) throw new NotFoundException(`Your account not found!`);
+    if (!distributer) {
+      this.logger.error(`Your account not found!`);
+      throw new NotFoundException(`Your account not found!`);
+    }
     Object.assign(distributer, dto);
     await this.userRepository.save(distributer);
     return distributer;
@@ -56,6 +70,7 @@ export class UserService {
       try {
         await this.mediaService.deleteOneMedia(candidate.media.id);
       } catch (err) {
+        this.logger.error('Could not delete image');
         throw new InternalServerErrorException('Could not delete image');
       }
     }
@@ -79,12 +94,16 @@ export class UserService {
         where: { id: currentUser.id },
         relations: { media: true },
       });
-      if (!user) throw new BadRequestException();
+      if (!user) {
+        this.logger.error(`User not found`);
+        throw new BadRequestException();
+      }
       await this.mediaService.deleteOneMedia(user.media.id);
       await queryRunner.manager.delete(UserEntity, user.id);
       return { message: 'User deleted successfully!' };
-    } catch (err) {
+    } catch (err: any) {
       await queryRunner.rollbackTransaction();
+      this.logger.error(err.message);
       throw new InternalServerErrorException(err);
     } finally {
       await queryRunner.release();

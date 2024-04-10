@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
 import { SubcategoryEntity } from 'src/admin/stock/subcategory/entities/subcategory.entity';
@@ -13,6 +13,8 @@ import {
 
 @Injectable()
 export class ClientSubcategoryService {
+  private readonly logger = new Logger(ClientSubcategoryService.name);
+
   constructor(
     @InjectRepository(SubcategoryEntity)
     private subcategoryRepository: Repository<SubcategoryEntity>,
@@ -26,6 +28,9 @@ export class ClientSubcategoryService {
     user?: UserEntity,
   ) {
     const { lng = LngEnum.tkm } = query;
+
+    this.logger.log(`Getting subcategory with id ${subcategoryId}`);
+
     const subcategory = await this.subcategoryRepository
       .createQueryBuilder('subcategory')
       .leftJoin('subcategory.medias', 'medias')
@@ -42,10 +47,14 @@ export class ClientSubcategoryService {
         subcategoryId: subcategoryId,
       })
       .getOne();
-    if (!subcategory)
+
+    if (!subcategory) {
+      this.logger.error(`Subcategory with id ${subcategoryId} not found!`);
       throw new NotFoundException(
-        `Subcategory with ${subcategoryId} not found!`,
+        `Subcategory with id ${subcategoryId} not found!`,
       );
+    }
+
     const products = await this.getProductsBySubcategory(
       subcategoryId,
       query,
@@ -72,6 +81,8 @@ export class ClientSubcategoryService {
       search = '',
       lng = LngEnum.tkm,
     } = query;
+
+    this.logger.log(`Getting products for subcategory ${subcategoryId}`);
 
     const userType = user ? user.role : 'user';
 
@@ -181,6 +192,12 @@ export class ClientSubcategoryService {
       search = '',
       lng = LngEnum.tkm,
     } = query;
+
+    this.logger.log(
+      `Getting subcategories for category ${categoryId} with query: ${JSON.stringify(
+        query,
+      )}`,
+    );
 
     const userType = currentUser ? currentUser.role : 'user';
 
