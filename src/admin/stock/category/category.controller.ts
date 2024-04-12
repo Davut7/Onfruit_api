@@ -40,6 +40,7 @@ import { MediaEntity } from 'src/media/entities/media.entity';
 
 @ApiTags('categories')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('stock/category')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
@@ -60,7 +61,6 @@ export class CategoryController {
     description: 'Category with this title already exists!',
   })
   @Post()
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
   async createCategory(@Body() dto: CreateCategoryDto) {
     return this.categoryService.createCategory(dto);
@@ -81,7 +81,6 @@ export class CategoryController {
     },
   })
   @Get()
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Read, subject: SubjectEnum.Products })
   async getCategories() {
     return this.categoryService.getCategories();
@@ -103,7 +102,6 @@ export class CategoryController {
     description: 'Category not found',
   })
   @Patch(':categoryId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Update, subject: SubjectEnum.Products })
   async updateCategory(
     @Param('categoryId', ParseUUIDPipe) categoryId: string,
@@ -122,7 +120,6 @@ export class CategoryController {
     description: 'Category returned by id',
   })
   @Get(':categoryId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Read, subject: SubjectEnum.Products })
   async getOneCategory(@Param('categoryId', ParseUUIDPipe) categoryId: string) {
     const category = await this.categoryService.getOneCategory(categoryId);
@@ -147,7 +144,6 @@ export class CategoryController {
     },
   })
   @Delete(':categoryId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Delete, subject: SubjectEnum.Products })
   async deleteCategory(@Param('categoryId', ParseUUIDPipe) categoryId: string) {
     return this.categoryService.deleteCategory(categoryId);
@@ -176,7 +172,6 @@ export class CategoryController {
     description: 'Image not provided',
   })
   @Post(':categoryId/image')
-  @UseGuards(AbilitiesGuard)
   @ApiConsumes('multipart/form-data')
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
   @UseInterceptors(
@@ -217,7 +212,6 @@ export class CategoryController {
     },
   })
   @Delete(':mediaId/image')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
   async deleteCategoryImage(@Param('mediaId', ParseUUIDPipe) mediaId: string) {
     return this.categoryService.deleteCategoryImage(mediaId);

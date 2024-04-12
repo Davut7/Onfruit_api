@@ -47,6 +47,7 @@ import { ProductEntity } from '../product/entities/product.entity';
 
 @ApiTags('subcategory')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('stock/subcategory')
 export class SubcategoryController {
   constructor(private readonly subcategoryService: SubcategoryService) {}
@@ -70,7 +71,6 @@ export class SubcategoryController {
     description: 'Category not found',
   })
   @Post(':categoryId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
     subject: SubjectEnum.Products,
@@ -112,7 +112,6 @@ export class SubcategoryController {
   })
   @ApiConsumes('multipart/form-data')
   @Post(':subcategoryId/image')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
     subject: SubjectEnum.Products,
@@ -180,7 +179,6 @@ export class SubcategoryController {
     },
   })
   @Get()
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
@@ -209,7 +207,6 @@ export class SubcategoryController {
     description: 'Subcategory not found',
   })
   @Get(':subcategoryId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
@@ -243,7 +240,6 @@ export class SubcategoryController {
     description: 'Subcategory not found',
   })
   @Patch(':subcategoryId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Update,
     subject: SubjectEnum.Products,
@@ -278,7 +274,6 @@ export class SubcategoryController {
     description: 'Category relations not deleted',
   })
   @Delete(':subcategoryId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Delete,
     subject: SubjectEnum.Products,

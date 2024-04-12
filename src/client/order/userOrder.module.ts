@@ -8,6 +8,7 @@ import { UserBasketModule } from '../basket/basket.module';
 import { TokenModule } from '../user/token/userToken.module';
 import { UserModule } from '../user/users/user.module';
 import { RedisModule } from 'src/redis/redis.module';
+import { FavoriteListsModule } from '../favoriteList/favoriteLists.module';
 
 @Module({
   imports: [
@@ -16,8 +17,10 @@ import { RedisModule } from 'src/redis/redis.module';
     UserModule,
     RedisModule,
     UserBasketModule,
+    FavoriteListsModule,
   ],
   controllers: [UserOrderController],
   providers: [UserOrderService],
+  exports: [UserOrderService],
 })
 export class UserOrderModule {}

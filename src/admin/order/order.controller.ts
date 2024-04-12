@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { GetOrders } from 'src/client/order/dto/getOrders.dto';
@@ -20,9 +21,13 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { OrderEntity } from 'src/client/order/entities/order.entity';
+import { AbilitiesGuard } from 'src/helpers/guards/abilities.guard';
+import { CheckAbilities } from 'src/helpers/common/decorators/abilityDecorator.decorator'; // Import the CheckAbilities decorator
+import { ActionEnum, SubjectEnum } from 'src/helpers/constants';
 
 @ApiTags('admin-orders')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('admin/order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
@@ -40,6 +45,10 @@ export class OrderController {
     },
   })
   @Get()
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Orders,
+  })
   async getOrders(@Query() query: GetOrders) {
     return this.orderService.getOrders(query);
   }
@@ -54,6 +63,10 @@ export class OrderController {
     description: 'Order not found',
   })
   @Get(':orderId')
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Orders,
+  })
   async getOneOrder(@Param('orderId') orderId: string) {
     return this.orderService.getOneOrder(orderId);
   }
@@ -73,6 +86,10 @@ export class OrderController {
     description: 'Order not found',
   })
   @Delete(':orderId')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Orders,
+  })
   async deleteOrder(@Param('orderId') orderId: string) {
     return this.orderService.deleteOrder(orderId);
   }
@@ -93,6 +110,10 @@ export class OrderController {
     description: 'Order not found',
   })
   @Patch(':orderId')
+  @CheckAbilities({
+    action: ActionEnum.Update,
+    subject: SubjectEnum.Orders,
+  })
   async updateOrder(
     @Param('orderId') orderId: string,
     @Body() dto: UpdateOrderDto,

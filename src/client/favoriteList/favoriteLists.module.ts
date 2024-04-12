@@ -26,5 +26,6 @@ import { RedisModule } from 'src/redis/redis.module';
   ],
   controllers: [FavoriteListsController],
   providers: [FavoriteListsService],
+  exports: [FavoriteListsService],
 })
 export class FavoriteListsModule {}

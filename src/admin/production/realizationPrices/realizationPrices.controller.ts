@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Query,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { RealizationPricesService } from './realizationPrices.service';
 import { CreateRealizationPriceDto } from './dto/createRealization.dto';
@@ -22,9 +23,13 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { RealizationPriceEntity } from './entities/realizationPrices.entity';
+import { AbilitiesGuard } from 'src/helpers/guards/abilities.guard';
+import { CheckAbilities } from 'src/helpers/common/decorators/abilityDecorator.decorator'; // Import the CheckAbilities decorator
+import { ActionEnum, SubjectEnum } from 'src/helpers/constants';
 
 @ApiTags('realization-prices')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('/production/realization/price')
 export class RealizationPricesController {
   constructor(
@@ -41,6 +46,10 @@ export class RealizationPricesController {
     description: 'Product not found',
   })
   @Post(':productId')
+  @CheckAbilities({
+    action: ActionEnum.Create,
+    subject: SubjectEnum.Products,
+  })
   createPrice(
     @Body() dto: CreateRealizationPriceDto,
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -58,6 +67,10 @@ export class RealizationPricesController {
     description: 'Product not found',
   })
   @Get(':productId')
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Products,
+  })
   getPrices(
     @Param('productId', ParseUUIDPipe) productId: string,
     @Query() query: GetPricesDto,
@@ -75,6 +88,10 @@ export class RealizationPricesController {
     description: 'Price not found',
   })
   @Patch(':priceId')
+  @CheckAbilities({
+    action: ActionEnum.Update,
+    subject: SubjectEnum.Products,
+  })
   updatePrice(
     @Param('priceId', ParseUUIDPipe) priceId: string,
     @Body() dto: UpdateRealizationPriceDto,
@@ -96,6 +113,10 @@ export class RealizationPricesController {
     },
   })
   @Delete(':priceId')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Products,
+  })
   deletePrice(@Param('priceId', ParseUUIDPipe) priceId: string) {
     return this.realizationPricesService.deleteRealizationPrice(priceId);
   }

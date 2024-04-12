@@ -23,6 +23,7 @@ import {
   Matches,
 } from 'class-validator';
 import { SubcategoryEntity } from '../../subcategory/entities/subcategory.entity';
+import { ReviewEntity } from 'src/client/review/entities/review.entity';
 
 @Entity({ name: 'products' })
 export class ProductEntity extends BaseEntity {
@@ -181,4 +182,7 @@ export class ProductEntity extends BaseEntity {
 
   @OneToMany(() => DiscountEntity, (discount) => discount.product)
   discount: DiscountEntity;
+
+  @OneToMany(() => ReviewEntity, (review) => review.product)
+  reviews: ReviewEntity[];
 }

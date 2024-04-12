@@ -19,7 +19,7 @@ import {
   ApiNotFoundResponse,
 } from '@nestjs/swagger';
 
-@ApiTags('Client Subcategories')
+@ApiTags('client-subcategory')
 @Controller('client/subcategory')
 export class ClientSubcategoryController {
   constructor(

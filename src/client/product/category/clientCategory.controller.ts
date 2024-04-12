@@ -17,7 +17,7 @@ import {
   ApiCreatedResponse,
 } from '@nestjs/swagger';
 
-@ApiTags('Client Category')
+@ApiTags('client-category')
 @Controller('client/category')
 export class ClientCategoryController {
   constructor(private readonly clientCategoryService: ClientCategoryService) {}

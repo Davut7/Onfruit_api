@@ -18,6 +18,7 @@ import { OrderEntity } from 'src/client/order/entities/order.entity';
 import { LikedProductsEntity } from 'src/client/likedProducts/entities/likedProducts.entity';
 import { FavoriteListEntity } from 'src/client/favoriteList/entities/favoriteLists.entity';
 import { BasketEntity } from 'src/client/basket/entities/basket.entity';
+import { ReviewEntity } from 'src/client/review/entities/review.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity extends BaseEntity {
@@ -160,4 +161,7 @@ export class UserEntity extends BaseEntity {
 
   @OneToOne(() => MediaEntity, (media) => media.user)
   media: MediaEntity;
+
+  @OneToMany(() => ReviewEntity, (review) => review.user)
+  reviews: ReviewEntity[];
 }

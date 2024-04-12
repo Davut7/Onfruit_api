@@ -1,6 +1,5 @@
 export enum SubjectEnum {
   AdminUsers = 'AdminUsers',
-  Accounting = 'Accounting',
   Discounts = 'Discounts',
   Warehouse = 'Warehouse',
   Reviews = 'Reviews',
@@ -9,4 +8,7 @@ export enum SubjectEnum {
   Advertisement = 'Advertisement',
   Orders = 'Orders',
   Main = 'Main',
+  Employee = 'Employee',
+  Penalty = 'Penalty',
+  Prepayment = 'Prepayment'
 }

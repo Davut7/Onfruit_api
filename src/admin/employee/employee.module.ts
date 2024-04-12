@@ -9,6 +9,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { MonthlyRecordEntity } from './entities/monthlyRecords.entity';
 import { MonthlyRecordDetailEntity } from './entities/monthlyRecordDetails.entity';
 import { MediaModule } from 'src/media/media.module';
+import { RedisModule } from 'src/redis/redis.module';
+import { AbilityControlModule } from '../abilityControl/abilityControl.module';
 
 @Module({
   imports: [
@@ -21,6 +23,8 @@ import { MediaModule } from 'src/media/media.module';
     ]),
     ScheduleModule.forRoot(),
     MediaModule,
+    RedisModule,
+    AbilityControlModule,
   ],
   controllers: [EmployeeController],
   providers: [EmployeeService],

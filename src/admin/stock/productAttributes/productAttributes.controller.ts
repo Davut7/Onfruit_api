@@ -26,7 +26,8 @@ import {
 import { ProductAttributesEntity } from './entities/productAttributes.entity';
 
 @ApiBearerAuth()
-@ApiTags('productAttributes')
+@ApiTags('product-attributes')
+@UseGuards(AbilitiesGuard)
 @Controller('stock/product-attributes')
 export class ProductAttributesController {
   constructor(
@@ -43,7 +44,6 @@ export class ProductAttributesController {
     description: 'Product not found',
   })
   @Post(':productId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
     subject: SubjectEnum.Products,
@@ -68,7 +68,6 @@ export class ProductAttributesController {
     description: 'Product attribute by id not found',
   })
   @Patch(':productAttributeId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Update,
     subject: SubjectEnum.Products,
@@ -93,7 +92,6 @@ export class ProductAttributesController {
     description: 'Product not found',
   })
   @Get(':productAttributeId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
@@ -114,7 +112,6 @@ export class ProductAttributesController {
     description: 'Product not found',
   })
   @Delete(':productAttributeId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Delete,
     subject: SubjectEnum.Products,

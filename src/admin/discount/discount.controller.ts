@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { DiscountService } from './discount.service';
 import { CreateDiscountDto } from './dto/createDiscount.dto';
@@ -22,9 +23,13 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { DiscountEntity } from './entities/discount.entity';
+import { AbilitiesGuard } from 'src/helpers/guards/abilities.guard';
+import { CheckAbilities } from 'src/helpers/common/decorators/abilityDecorator.decorator';
+import { ActionEnum, SubjectEnum } from 'src/helpers/constants';
 
 @ApiTags('discounts')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('/admin/discounts')
 export class DiscountController {
   constructor(private discountService: DiscountService) {}
@@ -51,6 +56,10 @@ export class DiscountController {
     description: 'Product not found',
   })
   @Post(':productId')
+  @CheckAbilities({
+    action: ActionEnum.Create,
+    subject: SubjectEnum.Discounts,
+  })
   async createDiscount(
     @Body() dto: CreateDiscountDto,
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -80,6 +89,10 @@ export class DiscountController {
     description: 'All available discount returned successfully',
   })
   @Get()
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Discounts,
+  })
   async getDiscounts() {
     return this.discountService.getDiscounts();
   }
@@ -99,6 +112,10 @@ export class DiscountController {
     description: 'Discount not found',
   })
   @Get(':discountId')
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Discounts,
+  })
   async getOneDiscount(@Param('discountId', ParseUUIDPipe) discountId: string) {
     return this.discountService.getOneDiscount(discountId);
   }
@@ -119,6 +136,10 @@ export class DiscountController {
     description: 'Discount not found',
   })
   @Patch(':discountId')
+  @CheckAbilities({
+    action: ActionEnum.Update,
+    subject: SubjectEnum.Discounts,
+  })
   async updateDiscount(
     @Param('discountId', ParseUUIDPipe) discountId: string,
     @Body() dto: UpdateDiscountDto,
@@ -141,6 +162,10 @@ export class DiscountController {
     description: 'Discount not found',
   })
   @Delete(':discountId')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Discounts,
+  })
   async deleteDiscount(@Param('discountId', ParseUUIDPipe) discountId: string) {
     return this.discountService.deleteDiscount(discountId);
   }

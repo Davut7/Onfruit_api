@@ -10,6 +10,7 @@ import {
   Post,
   Query,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { BannerService } from './banner.service';
@@ -31,9 +32,13 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { BannerEntity } from './entities/banner.entity';
+import { AbilitiesGuard } from 'src/helpers/guards/abilities.guard';
+import { CheckAbilities } from 'src/helpers/common/decorators/abilityDecorator.decorator';
+import { ActionEnum, SubjectEnum } from 'src/helpers/constants';
 
 @ApiTags('banners')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('admin/banner')
 export class BannerController {
   constructor(private readonly bannerService: BannerService) {}
@@ -71,6 +76,10 @@ export class BannerController {
       },
     }),
   )
+  @CheckAbilities({
+    action: ActionEnum.Create,
+    subject: SubjectEnum.Advertisement,
+  })
   async createBanner(
     @Body() dto: CreateBannerDto,
     @UploadedFile() image: Express.Multer.File,
@@ -94,6 +103,10 @@ export class BannerController {
     description: 'Banners returned successfully',
   })
   @Get()
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Advertisement,
+  })
   async getBanner(@Query() query: GetBannersDto) {
     return this.bannerService.getBanners(query);
   }
@@ -108,6 +121,10 @@ export class BannerController {
     description: 'Banner not found',
   })
   @Get(':bannerId')
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Advertisement,
+  })
   async getOneBanner(@Param('bannerId', ParseUUIDPipe) bannerId: string) {
     return this.bannerService.getOneBanner(bannerId);
   }
@@ -122,6 +139,10 @@ export class BannerController {
     description: 'Banner not found',
   })
   @Delete(':bannerId')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Advertisement,
+  })
   async deleteBanner(@Param('bannerId', ParseUUIDPipe) bannerId: string) {
     return this.bannerService.deleteBanner(bannerId);
   }

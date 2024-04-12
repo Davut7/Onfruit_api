@@ -33,6 +33,7 @@ import { ArrivalEntity } from './entities/arrival.entity';
 
 @ApiBearerAuth()
 @ApiTags('arrivals')
+@UseGuards(AbilitiesGuard)
 @Controller('stock/arrival')
 export class ArrivalController {
   constructor(private readonly arrivalService: ArrivalService) {}
@@ -57,7 +58,6 @@ export class ArrivalController {
     description: 'Provided article not capable with product',
   })
   @Post(':productId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
     subject: SubjectEnum.Warehouse,
@@ -82,7 +82,6 @@ export class ArrivalController {
     },
   })
   @Get()
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Warehouse,
@@ -104,7 +103,6 @@ export class ArrivalController {
     },
   })
   @Get(':arrivalId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Warehouse,
@@ -122,7 +120,6 @@ export class ArrivalController {
     type: ArrivalEntity,
   })
   @Patch(':arrivalId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Update,
     subject: SubjectEnum.Warehouse,
@@ -145,7 +142,6 @@ export class ArrivalController {
     },
   })
   @Delete(':arrivalId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Delete,
     subject: SubjectEnum.Warehouse,

@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import {
   ApiBearerAuth,
@@ -8,9 +8,13 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { OrderEntity } from 'src/client/order/entities/order.entity';
+import { AbilitiesGuard } from 'src/helpers/guards/abilities.guard';
+import { ActionEnum, SubjectEnum } from 'src/helpers/constants';
+import { CheckAbilities } from 'src/helpers/common/decorators/abilityDecorator.decorator';
 
 @ApiTags('Analytics')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('/analytics')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
@@ -28,6 +32,10 @@ export class AnalyticsController {
         orderCount: { type: 'number' },
       },
     },
+  })
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Analytics,
   })
   @Get('completed-orders')
   async getCompletedOrdersAndCount() {
@@ -47,6 +55,10 @@ export class AnalyticsController {
       },
     },
   })
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Analytics,
+  })
   @Get('registered-users')
   async getRegisteredUsers() {
     return this.analyticsService.getRegisteredUsers();
@@ -61,6 +73,10 @@ export class AnalyticsController {
         usersCount: { type: 'number' },
       },
     },
+  })
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Analytics,
   })
   @Get('registered-users-today')
   async getRegisteredUsersToday() {
@@ -79,6 +95,10 @@ export class AnalyticsController {
       },
     },
   })
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Analytics,
+  })
   @Get('sold-products-weight')
   async getSoldProductsWeight() {
     return this.analyticsService.getSoldProductsWeight();
@@ -86,6 +106,10 @@ export class AnalyticsController {
 
   @ApiOperation({ summary: 'Get recent orders' })
   @ApiOkResponse({ description: 'Returns recent orders.', type: [OrderEntity] })
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Analytics,
+  })
   @Get('recent-orders')
   async getRecentOrders() {
     return this.analyticsService.getRecentOrders();
@@ -96,6 +120,10 @@ export class AnalyticsController {
     description: 'Returns top sold products.',
     type: [OrderEntity],
   })
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Analytics,
+  })
   @Get('top-sold-products')
   async getTopSoldProducts() {
     return this.analyticsService.getTopSoldProducts();
@@ -105,6 +133,10 @@ export class AnalyticsController {
   @ApiOkResponse({
     description: 'Returns top not sold products.',
     type: [OrderEntity],
+  })
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Analytics,
   })
   @Get('top-not-sold-products')
   async getTopNotSoldProducts() {
@@ -123,6 +155,10 @@ export class AnalyticsController {
         ordersCount: { type: 'number' },
       },
     },
+  })
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Analytics,
   })
   @Get('get-monthly-orders')
   async getGetMonthlyOrders() {

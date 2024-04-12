@@ -41,6 +41,7 @@ import { ProductEntity } from './entities/product.entity';
 
 @ApiBearerAuth()
 @ApiTags('products')
+@UseGuards(AbilitiesGuard)
 @Controller('stock/product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
@@ -51,7 +52,6 @@ export class ProductController {
   })
   @ApiOperation({ summary: 'Getting countries' })
   @Get('/countries')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
@@ -79,7 +79,6 @@ export class ProductController {
     description: 'Subcategory not found',
   })
   @Post(':subcategoryId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Create,
     subject: SubjectEnum.Products,
@@ -111,7 +110,6 @@ export class ProductController {
     description: 'Product not found',
   })
   @Post(':productId/image')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
   @UseInterceptors(
     FileInterceptor('image', {
@@ -155,7 +153,6 @@ export class ProductController {
     description: 'Image not found',
   })
   @Delete(':mediaId/image')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({ action: ActionEnum.Create, subject: SubjectEnum.Products })
   async deleteCategoryImage(@Param('id', ParseUUIDPipe) mediaId: string) {
     return await this.productService.deleteProductImage(mediaId);
@@ -173,7 +170,6 @@ export class ProductController {
   })
   @ApiOperation({ summary: 'Get products' })
   @Get()
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
@@ -199,7 +195,6 @@ export class ProductController {
   })
   @ApiOperation({ summary: 'Get product by article' })
   @Get('/article')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
@@ -227,7 +222,6 @@ export class ProductController {
     description: 'Product by id not found',
   })
   @Get(':productId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Read,
     subject: SubjectEnum.Products,
@@ -255,7 +249,6 @@ export class ProductController {
   })
   @ApiOperation({ summary: 'Update product by id' })
   @Patch(':productId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Update,
     subject: SubjectEnum.Products,
@@ -286,7 +279,6 @@ export class ProductController {
     description: 'Product by id not found',
   })
   @Delete(':productId')
-  @UseGuards(AbilitiesGuard)
   @CheckAbilities({
     action: ActionEnum.Delete,
     subject: SubjectEnum.Products,

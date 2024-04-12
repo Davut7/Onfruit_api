@@ -4,6 +4,7 @@ import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 import { UserEntity } from 'src/client/user/users/entities/user.entity';
 import { FavoriteListProductsEntity } from './favoriteListProducts.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { ClientAddressEntity } from 'src/client/user/address/entities/address.entity';
 
 @Entity({ name: 'favorite_list' })
 export class FavoriteListEntity extends BaseEntity {

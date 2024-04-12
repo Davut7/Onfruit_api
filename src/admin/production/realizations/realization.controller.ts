@@ -10,6 +10,7 @@ import {
   Query,
   NotFoundException,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { RealizationService } from './realization.service';
 import { CreateRealizationDto } from './dto/createRealization.dto';
@@ -26,9 +27,13 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { RealizationEntity } from './entities/realizations.entity';
+import { AbilitiesGuard } from 'src/helpers/guards/abilities.guard';
+import { CheckAbilities } from 'src/helpers/common/decorators/abilityDecorator.decorator'; // Import the CheckAbilities decorator
+import { ActionEnum, SubjectEnum } from 'src/helpers/constants';
 
 @ApiTags('realizations')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('/production/realization')
 export class RealizationController {
   constructor(private readonly realizationService: RealizationService) {}
@@ -47,6 +52,10 @@ export class RealizationController {
     description: 'Realization created successfully',
   })
   @Post(':productId')
+  @CheckAbilities({
+    action: ActionEnum.Create,
+    subject: SubjectEnum.Products,
+  })
   createRealization(
     @Body() dto: CreateRealizationDto,
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -66,6 +75,10 @@ export class RealizationController {
     },
   })
   @Get()
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Products,
+  })
   getRealizations(@Query() query: GetRealizationsDto) {
     return this.realizationService.getRealizations(query);
   }
@@ -83,6 +96,10 @@ export class RealizationController {
     },
   })
   @Get(':productId')
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Products,
+  })
   getRealizationByProductId(
     @Query() query: GetOneRealizationDto,
     @Param('productId', ParseUUIDPipe) productId: string,
@@ -100,6 +117,10 @@ export class RealizationController {
     description: 'Realization not found',
   })
   @Patch(':realizationId')
+  @CheckAbilities({
+    action: ActionEnum.Update,
+    subject: SubjectEnum.Products,
+  })
   updateRealization(
     @Param('realizationId', ParseUUIDPipe) realizationId: string,
     @Body() dto: UpdateRealizationDto,
@@ -125,6 +146,10 @@ export class RealizationController {
     },
   })
   @Delete(':realizationId')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Products,
+  })
   deleteRealization(
     @Param('realizationId', ParseUUIDPipe) realizationId: string,
   ) {

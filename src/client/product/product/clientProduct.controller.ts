@@ -19,7 +19,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 
-@ApiTags('Client Products')
+@ApiTags('client-products')
 @Controller('client/products')
 export class ClientProductController {
   constructor(private readonly clientProductService: ClientProductService) {}

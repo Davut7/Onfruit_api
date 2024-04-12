@@ -42,6 +42,24 @@ export class UserOrderController {
   ) {
     return this.userOrderService.orderBasketProducts(currentUser, addressId);
   }
+  @UseGuards(ClientAuthGuard)
+  @ApiOperation({ summary: 'Order favorite list products' })
+  @ApiCreatedResponse({
+    description: 'Products ordered successfully',
+  })
+  @ApiBadRequestResponse({ description: 'Invalid request body' })
+  @Post(':favoriteListId/favorite-list/:addressId')
+  async orderFavoriteListProducts(
+    @CurrentUser() currentUser: UserEntity,
+    @Param('addressId', ParseUUIDPipe) addressId: string,
+    @Param('favoriteListId', ParseUUIDPipe) favoriteListId: string,
+  ) {
+    return this.userOrderService.orderFavoriteListProducts(
+      currentUser,
+      favoriteListId,
+      addressId,
+    );
+  }
 
   @UseGuards(ClientAuthGuard)
   @ApiOperation({ summary: 'Get orders' })

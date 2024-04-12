@@ -13,6 +13,7 @@ import {
   BadRequestException,
   ConflictException,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { EmployeeService } from './employee.service';
 import { CreateEmployeeDto } from './dto/createEmployee.dto';
@@ -39,9 +40,13 @@ import { EmployeeEntity } from './entities/employee.entity';
 import { MediaEntity } from 'src/media/entities/media.entity';
 import { PenaltyEntity } from './entities/penalty.entity';
 import { PrePaymentEntity } from './entities/prepayment.entity';
+import { AbilitiesGuard } from 'src/helpers/guards/abilities.guard';
+import { CheckAbilities } from 'src/helpers/common/decorators/abilityDecorator.decorator';
+import { ActionEnum, SubjectEnum } from 'src/helpers/constants';
 
 @ApiTags('employees')
 @ApiBearerAuth()
+@UseGuards(AbilitiesGuard)
 @Controller('employee')
 export class EmployeeController {
   constructor(private readonly employeeService: EmployeeService) {}
@@ -59,6 +64,10 @@ export class EmployeeController {
     description: 'Employee with this passport already exists',
   })
   @Post()
+  @CheckAbilities({
+    action: ActionEnum.Create,
+    subject: SubjectEnum.Employee,
+  })
   async createEmployee(@Body() dto: CreateEmployeeDto) {
     return this.employeeService.createEmployee(dto);
   }
@@ -75,6 +84,10 @@ export class EmployeeController {
     },
   })
   @Get()
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Employee,
+  })
   getEmployees(@Query() query: GetEmployeesQuery) {
     return this.employeeService.getEmployees(query);
   }
@@ -94,6 +107,10 @@ export class EmployeeController {
     description: 'Employee not found',
   })
   @Get(':employeeId')
+  @CheckAbilities({
+    action: ActionEnum.Read,
+    subject: SubjectEnum.Employee,
+  })
   getOneEmployee(@Param('employeeId', ParseUUIDPipe) employeeId: string) {
     return this.employeeService.getOneEmployee(employeeId);
   }
@@ -113,6 +130,10 @@ export class EmployeeController {
     description: 'Employee not found',
   })
   @Patch(':employeeId')
+  @CheckAbilities({
+    action: ActionEnum.Update,
+    subject: SubjectEnum.Employee,
+  })
   updateEmployee(
     @Param('employeeId', ParseUUIDPipe) employeeId: string,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
@@ -135,6 +156,10 @@ export class EmployeeController {
     description: 'Employee not found',
   })
   @Delete(':employeeId')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Employee,
+  })
   deleteEmployee(@Param('id', ParseUUIDPipe) employeeId: string) {
     return this.employeeService.deleteEmployee(employeeId);
   }
@@ -159,6 +184,10 @@ export class EmployeeController {
     description: 'Employee not found',
   })
   @Post(':employeeId/image')
+  @CheckAbilities({
+    action: ActionEnum.Create,
+    subject: SubjectEnum.Employee,
+  })
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
@@ -201,6 +230,10 @@ export class EmployeeController {
     description: 'Media not found',
   })
   @Delete(':mediaId/image')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Employee,
+  })
   async deleteEmployeeImage(@Param('id', ParseUUIDPipe) mediaId: string) {
     return await this.employeeService.deleteEmployeeImage(mediaId);
   }
@@ -228,6 +261,10 @@ export class EmployeeController {
     description: 'Monthly salary is not enough to pay penalty',
   })
   @Post('/penalty/:employeeId')
+  @CheckAbilities({
+    action: ActionEnum.Create,
+    subject: SubjectEnum.Penalty,
+  })
   async createPenalty(
     @Body() dto: CreatePenaltyDto,
     @Param('employeeId', ParseUUIDPipe) employeeId: string,
@@ -261,6 +298,10 @@ export class EmployeeController {
     description: 'Monthly record detail not found for the penalty',
   })
   @Delete('/penalty/:penaltyId')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Penalty,
+  })
   async deletePenalty(@Param('penaltyId', ParseUUIDPipe) penaltyId: string) {
     return await this.employeeService.deletePenalty(penaltyId);
   }
@@ -288,6 +329,10 @@ export class EmployeeController {
     description: 'Monthly salary is not enough to pay penalty',
   })
   @Post('/prepayment/:employeeId')
+  @CheckAbilities({
+    action: ActionEnum.Create,
+    subject: SubjectEnum.Prepayment,
+  })
   async createPrepayment(
     @Body() dto: CreatePrepaymentDto,
     @Param('id', ParseUUIDPipe) employeeId: string,
@@ -321,6 +366,10 @@ export class EmployeeController {
     description: 'Monthly record detail not found for the penalty',
   })
   @Delete('/prepayment/:prepaymentId')
+  @CheckAbilities({
+    action: ActionEnum.Delete,
+    subject: SubjectEnum.Prepayment,
+  })
   async deletePrepayment(
     @Param('prepaymentId', ParseUUIDPipe) prepaymentId: string,
   ) {

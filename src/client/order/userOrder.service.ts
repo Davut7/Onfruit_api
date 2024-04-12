@@ -15,6 +15,7 @@ import { UserTokenDto } from '../user/token/dto/userToken.dto';
 import { GetOrders } from './dto/getOrders.dto';
 import { GetOrdersEnum, OrderStatus, OrderType } from 'src/helpers/constants';
 import { ProductEntity } from 'src/admin/stock/product/entities/product.entity';
+import { FavoriteListsService } from '../favoriteList/favoriteLists.service';
 
 @Injectable()
 export class UserOrderService {
@@ -24,8 +25,10 @@ export class UserOrderService {
     @InjectRepository(OrderEntity)
     private orderRepository: Repository<OrderEntity>,
     @InjectRepository(OrderProductsEntity)
+    private orderProductsRepository: Repository<OrderProductsEntity>,
     private userBasketService: UserBasketService,
     private dataSource: DataSource,
+    private favoriteListService: FavoriteListsService,
   ) {}
 
   async orderBasketProducts(currentUser: UserEntity, addressId: string) {
@@ -89,6 +92,74 @@ export class UserOrderService {
     }
   }
 
+  async orderFavoriteListProducts(
+    currentUser: UserEntity,
+    favoriteListId: string,
+    addressId: string,
+  ) {
+    this.logger.log(
+      `Ordering favorite list products for user ${currentUser.id} with addressId ${addressId}`,
+    );
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const order = new OrderEntity();
+      order.addressId = addressId;
+      order.userId = currentUser.id;
+      order.orderAt = new Date();
+      await queryRunner.manager.save(order);
+
+      const userFavoriteList =
+        await this.favoriteListService.getOneFavoriteList(favoriteListId);
+
+      for (const productFromFavoriteList of userFavoriteList.favoriteListProducts) {
+        const product = await queryRunner.manager.findOne(ProductEntity, {
+          where: { id: productFromFavoriteList.productId },
+        });
+
+        if (
+          product.currentSaleQuantity <
+            productFromFavoriteList.productQuantity ||
+          product.currentSum < productFromFavoriteList.productSum
+        ) {
+          throw new BadRequestException(
+            'Check product quantities in basket, they are more than in sale',
+          );
+        }
+
+        const orderProduct = new OrderProductsEntity();
+        orderProduct.orderId = order.id;
+        orderProduct.productQuantity = productFromFavoriteList.productQuantity;
+        orderProduct.productSum = productFromFavoriteList.productSum;
+        orderProduct.productId = productFromFavoriteList.productId;
+
+        product.currentSaleQuantity -= productFromFavoriteList.productQuantity;
+        product.currentSum -= productFromFavoriteList.productSum;
+
+        await queryRunner.manager.save(orderProduct);
+        await queryRunner.manager.save(product);
+      }
+
+      return {
+        message: 'Products ordered successfully',
+        order: order,
+      };
+    } catch (error: any) {
+      await queryRunner.rollbackTransaction();
+      this.logger.error(
+        `Error ordering favorite list products: ${error.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Something went wrong while ordering favorite list products',
+      );
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async getOrders(currentUser: UserTokenDto, query?: GetOrders) {
     this.logger.log(`Getting orders for user ${currentUser.id}`);
 
@@ -144,10 +215,7 @@ export class UserOrderService {
       })
       .getOne();
 
-    return {
-      message: 'Order returned successfully',
-      order: order,
-    };
+    return order;
   }
 
   async getOrderById(orderId: string, userId: string) {
@@ -178,5 +246,14 @@ export class UserOrderService {
     return {
       message: 'Order deleted successfully',
     };
+  }
+
+  async getOneOrderProduct(orderId: string, productId: string) {
+    const orderProduct = await this.orderProductsRepository.findOne({
+      where: { orderId: orderId, productId: productId },
+      relations: { product: true },
+    });
+    if (!orderProduct) throw new NotFoundException('Order product not found');
+    return orderProduct;
   }
 }
